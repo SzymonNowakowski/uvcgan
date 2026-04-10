@@ -20,7 +20,7 @@ def linear_scheduler(optimizer, epochs_warmup, epochs_anneal, verbose = True):
 
 def get_scheduler(optimizer, scheduler):
     name, kwargs = extract_name_kwargs(scheduler)
-    kwargs['verbose'] = True
+    #kwargs['verbose'] = True
 
     if name == 'linear':
         return linear_scheduler(optimizer, **kwargs)
