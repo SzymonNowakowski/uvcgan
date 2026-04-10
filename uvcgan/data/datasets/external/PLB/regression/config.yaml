@@ -1,0 +1,22 @@
+data:
+  data_dir: "../../data_generation/dataset_01_20260223"
+  train_dataset:
+    _target_: plbregression.dataset.PLBDataset
+    data_dir: ${data.data_dir}
+    is_training: true
+    transform:
+      _target_: plbregression.dataset.get_transforms
+      crop_size: 150
+      is_training: true
+
+  train_dataloader:
+    _target_: torch.utils.data.DataLoader
+    dataset: ${data.train_dataset}
+    batch_size: 32
+    shuffle: true
+    num_workers: 4
+
+model:
+  _target_: plbregression.model.SimpleRegressionNet
+  input_channels: 1
+  num_outputs: 5
