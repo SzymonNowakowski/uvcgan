@@ -39,6 +39,11 @@ training environment with `conda`
 conda env create -f contrib/conda_env.yml
 ```
 
+**To clone the repository for synthetic/real biological dataset**, use the following command:
+```
+git clone --recursive https://github.com/SzymonNowakowski/uvcgan.git
+```
+
 ## Installation
 
 To install the `uvcgan` package one may simply run the following command
