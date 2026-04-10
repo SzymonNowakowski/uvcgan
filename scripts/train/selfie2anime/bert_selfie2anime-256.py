@@ -10,6 +10,8 @@ def parse_cmdargs():
     add_batch_size_parser(parser, default = 64)
     return parser.parse_args()
 
+print("Current Working Directory:", os.getcwd())
+
 GEN_PRESETS = {
     'resnet9' : {
         'model'      : 'resnet_9blocks',

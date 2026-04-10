@@ -9,6 +9,7 @@ from .datasets.cyclegan    import CycleGANDataset
 from .datasets.cyclegan_v2 import CycleGANv2Dataset
 from .transforms           import select_transform
 from .utils                import imbalanced_collate
+from hydra.utils import instantiate   # for the bio dataset, which is a bit more complex to construct than the others
 
 def worker_init_fn(_worker_id):
     worker_seed = torch.initial_seed() % 2**32
@@ -78,6 +79,20 @@ def select_datasets(
     dataset, transform_train, transform_val, path = None, **dataset_args
 ):
     path = os.path.join(ROOT_DATA, path or dataset)
+
+    if dataset == 'unpaired-bio':
+        # Here we use instantiate to build the Coordinator and its sub-datasets
+        # We pass transform_train/val as overrides to the config
+        dset_train = instantiate(
+            dataset_args,
+            shared_transform=transform_train
+        )
+        dset_val = instantiate(
+            dataset_args,
+            shared_transform=transform_val
+        )
+
+        return (dset_train, dset_val)
 
     if dataset == 'celeba':
         return load_celeba_datasets(

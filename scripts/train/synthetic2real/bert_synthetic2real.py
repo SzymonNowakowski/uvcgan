@@ -1,93 +1,88 @@
-import argparse
 import os
+import argparse
+from uvcgan import ROOT_OUTDIR, ROOT_DATA, train
 
-from uvcgan import ROOT_OUTDIR, train
-from uvcgan.utils.parsers import add_preset_name_parser, add_batch_size_parser
+
+# Note: Classes are not defined here to keep the entry point clean.
+# They are dynamically loaded via hydra.utils.instantiate in uvcgan/data/data.py
+# based on the '_target_' paths provided in dataset_args.
 
 def parse_cmdargs():
-    parser = argparse.ArgumentParser(description = 'Train Anime2Selfie BERT')
-    add_preset_name_parser(parser, 'gen', GEN_PRESETS, 'vit-unet-12')
-    add_batch_size_parser(parser, default = 64)
+    parser = argparse.ArgumentParser(description='Pretrain Bio-BERT')
+    parser.add_argument('--batch_size', type=int, default=64)
     return parser.parse_args()
 
-GEN_PRESETS = {
-    'resnet9' : {
-        'model'      : 'resnet_9blocks',
-        'model_args' : None,
-    },
-    'unet' : {
-        'model'      : 'unet_256',
-        'model_args' : None,
-    },
-    'vit-unet-6' : {
-        'model' : 'vit-unet',
-        'model_args' : {
-            'features'           : 384,
-            'n_heads'            : 6,
-            'n_blocks'           : 6,
-            'ffn_features'       : 1536,
-            'embed_features'     : 384,
-            'activ'              : 'gelu',
-            'norm'               : 'layer',
-            'unet_features_list' : [48, 96, 192, 384],
-            'unet_activ'         : 'leakyrelu',
-            'unet_norm'          : 'instance',
-            'unet_downsample'    : 'conv',
-            'unet_upsample'      : 'upsample-conv',
-            'rezero'             : True,
-            'activ_output'       : 'sigmoid',
-        },
-    },
-    'vit-unet-12' : {
-        'model' : 'vit-unet',
-        'model_args' : {
-            'features'           : 384,
-            'n_heads'            : 6,
-            'n_blocks'           : 12,
-            'ffn_features'       : 1536,
-            'embed_features'     : 384,
-            'activ'              : 'gelu',
-            'norm'               : 'layer',
-            'unet_features_list' : [48, 96, 192, 384],
-            'unet_activ'         : 'leakyrelu',
-            'unet_norm'          : 'instance',
-            'unet_downsample'    : 'conv',
-            'unet_upsample'      : 'upsample-conv',
-            'rezero'             : True,
-            'activ_output'       : 'sigmoid',
-        },
-    },
-}
 
-cmdargs   = parse_cmdargs()
-args_dict = {
-    'batch_size' : cmdargs.batch_size,
-    'data' : {
-        'dataset' : 'cyclegan',
-        'dataset_args'   : {
-            'path'        : 'selfie2anime',
-            'align_train' : False,
-        },
-        'transform_train' : [
-            { 'name' : 'resize',          'size'    : 286, },
-            { 'name' : 'random-rotation', 'degrees' : 10,  },
-            { 'name' : 'random-crop',     'size'    : 256, },
-            'random-flip-horizontal',
-            {
-                'name' : 'color-jitter',
-                'brightness' : 0.2,
-                'contrast'   : 0.2,
-                'saturation' : 0.2,
-                'hue'        : 0.2,
+if __name__ == "__main__":
+
+
+    print("Current Working Directory:", os.getcwd())
+    cmdargs = parse_cmdargs()
+
+    args_dict = {
+        'batch_size': cmdargs.batch_size,
+        'data': {
+            'dataset': 'unpaired-bio',  # Triggers the custom logic in uvcgan/data/data.py
+            'dataset_args': {
+                # 1. Main entry point: The Coordinator that syncs Domain A and B
+                '_target_': 'uvcgan.data.datasets.bio_dataset.UnpairedBioCoordinator',
+
+                # 2. First constructor argument: The adapter for synthetic data (Domain A)
+                'synth_adapter': {
+                    '_target_': 'uvcgan.data.datasets.bio_dataset.SyntheticPLBAdapter',
+                    'plb_instance': {
+                        # Recursive instantiation of the external research dataset
+                        '_target_': 'uvcgan.data.external.PLB.regression.src.plbregression.dataset.PLBDataset',
+                        'data_dir': os.path.join(ROOT_DATA,"synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/"),
+                        'return_tensors': False,
+                        'transforms': [
+                            {
+                                '_target_': 'uvcgan.data.external.PLB.regression.src.plbregression.dataset.RandomRotatedShiftedCrop',
+                                'size': 160,
+                                'interpolation': 'cubic'
+                            },
+                        # no microscopic noise
+                        ],
+                    }
+                },
+
+                # 3. Second constructor argument: The real biological dataset (Domain B)
+                'real_dataset': {
+                    '_target_': 'uvcgan.data.datasets.bio_dataset.RealBiologicalDataset',
+                    'image_dir': os.path.join(ROOT_DATA,"synthetic2real/real/crop_2957"),
+                    'metadata_csv_path': os.path.join(ROOT_DATA,"synthetic2real/real/data_summary_2957.csv"),
+                    'target_nm': 300,
+                    'target_px': 160
+                },
+
+                # Note: 'shared_transform' is injected automatically by 'instantiate'
+                # inside uvcgan/data/data.py using 'transform_train/val'
             },
-        ],
-    },
-    'image_shape' : (3, 256, 256),
-    'epochs'      : 2499,
-    'discriminator' : None,
-    'generator' : {
-        **GEN_PRESETS[cmdargs.gen],
-        'optimizer'  : {
+            'transform_train': None,
+            'transform_val': None,
+        },
+        'image_shape': (1, 160, 160),
+        'epochs': 1000,
+        'discriminator': None,
+        'generator': {
+            'model' : 'vit-unet',
+            'model_args' : {
+                'features'           : 384,
+                'n_heads'            : 6,
+                'n_blocks'           : 12,
+                'ffn_features'       : 1536,
+                'embed_features'     : 384,
+                'activ'              : 'gelu',
+                'norm'               : 'layer',
+                'unet_features_list' : [48, 96, 192, 384],
+                'unet_activ'         : 'leakyrelu',
+                'unet_norm'          : 'instance',
+                'unet_downsample'    : 'conv',
+                'unet_upsample'      : 'upsample-conv',
+                'rezero'             : True,
+                'activ_output'       : 'sigmoid',
+            },
+            'optimizer'  : {
             'name'  : 'AdamW',
             'lr'    : cmdargs.batch_size * 5e-3 / 512,
             'betas' : (0.9, 0.99),
@@ -103,7 +98,7 @@ args_dict = {
         'joint'   : True,
         'masking' : {
             'name'       : 'image-patch-random',
-            'patch_size' : (32, 32),
+            'patch_size' : (16, 16),
             'fraction'   : 0.4,
         },
     },
@@ -117,11 +112,10 @@ args_dict = {
     'gradient_penalty' : None,
     'steps_per_epoch'  : 32 * 1024 // cmdargs.batch_size,
 # args
-    'label'      : f'bert-{cmdargs.gen}-256',
-    'outdir'     : os.path.join(ROOT_OUTDIR, 'selfie2anime'),
+    'label'      : f'bert-vit-unet-12-256',
+    'outdir'     : os.path.join(ROOT_OUTDIR, 'synthetic2real'),
     'log_level'  : 'DEBUG',
     'checkpoint' : 100,
-}
+    }
 
-train(args_dict)
-
+    train(args_dict)

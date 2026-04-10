@@ -1,4 +1,0 @@
-numpy
-matplotlib
-requests
-ipykernel # for running Jupyter notebooks
