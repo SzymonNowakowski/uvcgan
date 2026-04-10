@@ -9,7 +9,7 @@ from uvcgan import ROOT_OUTDIR, ROOT_DATA, train
 
 def parse_cmdargs():
     parser = argparse.ArgumentParser(description='Pretrain Bio-BERT')
-    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--batch_size', type=int, default=16)
     return parser.parse_args()
 
 
