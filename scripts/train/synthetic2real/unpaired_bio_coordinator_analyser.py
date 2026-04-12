@@ -102,4 +102,4 @@ if __name__ == "__main__":
 
     # 4. Run the calculation
     # This will iterate through the data and print your Mean and Std
-    stats = run_once_calculate_stats(coordinator, num_samples=2000)
+    stats = run_once_calculate_stats(coordinator)
