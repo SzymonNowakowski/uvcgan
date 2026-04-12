@@ -30,11 +30,8 @@ def run_once_calculate_stats(coordinator):
         img_s, img_r = coordinator[idx]
 
         # Flatten and convert to float32 for precise averaging
-        s_flat = img_s.detach().cpu().numpy().flatten() if torch.is_tensor(img_s) else img_s.flatten()
-        r_flat = img_r.detach().cpu().numpy().flatten() if torch.is_tensor(img_r) else img_r.flatten()
-
-        synth_values.append(s_flat.astype(np.float32))
-        real_values.append(r_flat.astype(np.float32))
+        synth_values.append(img_s.flatten().astype(np.float32))
+        real_values.append(img_r.flatten().astype(np.float32))
 
     # Stack all pixels to calculate true global mean and std
     all_synth = np.concatenate(synth_values)
