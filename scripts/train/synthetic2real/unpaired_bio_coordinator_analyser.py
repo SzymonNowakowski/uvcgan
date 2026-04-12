@@ -1,15 +1,17 @@
-import torch
+
 import numpy as np
 from tqdm import tqdm
 
+from uvcgan.data.datasets.bio_dataset import UnpairedBioCoordinator, SyntheticPLBAdapter, RealBiologicalDataset
+from uvcgan.data.external.PLB.regression.src.plbregression.dataset import PLBDataset, RandomRotatedShiftedCrop
 
-def run_once_calculate_stats(coordinator, num_samples=2000):
+def run_once_calculate_stats(coordinator):
     """
     Perform a one-time calculation of global mean and standard deviation.
     Run this script once, note the values, and hardcode them into your
     GlobalAndInstanceNorm setup.
     """
-    print(f"Sampling {num_samples} images to calculate global statistics...")
+    print(f"Sampling {len(coordinator)} images to calculate global statistics...")
 
     synth_values = []
     real_values = []
@@ -18,7 +20,7 @@ def run_once_calculate_stats(coordinator, num_samples=2000):
     np.random.seed(42)
     total_len = len(coordinator)
 
-    for _ in tqdm(range(min(num_samples, total_len))):
+    for _ in tqdm(range(total_len), desc="Calculating stats", unit="sample"):
         idx = np.random.randint(0, total_len)
 
         # Access raw data (ensure shared_transform=None in coordinator)
@@ -61,3 +63,41 @@ def run_once_calculate_stats(coordinator, num_samples=2000):
 # REAL_MEAN = <value_from_print> / 255.0
 # REAL_STD  = <value_from_print> / 255.0
 # custom_norm = GlobalAndInstanceNorm(REAL_MEAN, REAL_STD)
+
+
+
+# --- EXECUTION BLOCK ---
+if __name__ == "__main__":
+    print("Initializing components for statistics calculation...")
+
+    # 1. Initialize the Synthetic Domain A (Adapter + Underlying PLB Dataset)
+    # We apply the crop but NO microscopic noise or tensor conversion
+    plb_internal = PLBDataset(
+        data_dir=os.path.join(ROOT_DATA, "synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/"),
+        return_tensors=False,
+        transforms=[
+            RandomRotatedShiftedCrop(size=160, interpolation='cubic')
+        ]
+    )
+
+    synth_adapter = SyntheticPLBAdapter(plb_instance=plb_internal)
+
+    # 2. Initialize the Real Biological Domain B
+    real_dataset = RealBiologicalDataset(
+        image_dir=os.path.join(ROOT_DATA, "synthetic2real/real/crop_2957"),
+        metadata_csv_path=os.path.join(ROOT_DATA, "synthetic2real/real/data_summary_2957.csv"),
+        target_nm=320,
+        target_px=160
+    )
+
+    # 3. Initialize the Coordinator with shared_transform=None
+    # This ensures we get the raw numpy/uint8 arrays in the range [0, 255]
+    coordinator = UnpairedBioCoordinator(
+        synth_adapter=synth_adapter,
+        real_dataset=real_dataset,
+        shared_transform=None
+    )
+
+    # 4. Run the calculation
+    # This will iterate through the data and print your Mean and Std
+    stats = run_once_calculate_stats(coordinator, num_samples=2000)
