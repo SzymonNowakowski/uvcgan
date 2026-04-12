@@ -163,15 +163,17 @@ class UnpairedBioCoordinator(Dataset):
         random_idx = np.random.randint(0, len(self.synth_adapter))
         image_synth = self.synth_adapter[random_idx]
 
+        # Save a few samples for visual inspection
+        if UnpairedBioCoordinator._samples_saved < UnpairedBioCoordinator._max_samples:
+            self._dump_debug_sample(image_synth, image_real)
+            UnpairedBioCoordinator._samples_saved += 1
+
         # Final shared transforms
         if self.shared_transform:
             image_real = self.shared_transform(image_real)
             image_synth = self.shared_transform(image_synth)
 
-        # Save a few samples for visual inspection
-        if UnpairedBioCoordinator._samples_saved < UnpairedBioCoordinator._max_samples:
-            self._dump_debug_sample(image_synth, image_real)
-            UnpairedBioCoordinator._samples_saved += 1
+
 
         return image_synth, image_real
 
