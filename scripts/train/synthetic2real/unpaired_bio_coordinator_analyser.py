@@ -3,6 +3,7 @@ import numpy as np
 from tqdm import tqdm
 import os
 from uvcgan import ROOT_DATA
+from torchvision import transforms
 
 from uvcgan.data.datasets.bio_dataset import UnpairedBioCoordinator, SyntheticPLBAdapter, RealBiologicalDataset
 from uvcgan.data.external.PLB.regression.src.plbregression.dataset import PLBDataset, RandomRotatedShiftedCrop
@@ -97,7 +98,7 @@ if __name__ == "__main__":
     coordinator = UnpairedBioCoordinator(
         synth_adapter=synth_adapter,
         real_dataset=real_dataset,
-        shared_transform=None
+        shared_transform=transforms.ToTensor()
     )
 
     # 4. Run the calculation
