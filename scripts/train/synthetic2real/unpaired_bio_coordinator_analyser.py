@@ -30,8 +30,11 @@ def run_once_calculate_stats(coordinator):
         img_s, img_r = coordinator[idx]
 
         # Flatten and convert to float32 for precise averaging
-        synth_values.append(img_s.flatten().astype(np.float32))
-        real_values.append(img_r.flatten().astype(np.float32))
+        s_flat = img_s.detach().cpu().numpy().flatten() if torch.is_tensor(img_s) else img_s.flatten()
+        r_flat = img_r.detach().cpu().numpy().flatten() if torch.is_tensor(img_r) else img_r.flatten()
+
+        synth_values.append(s_flat.astype(np.float32))
+        real_values.append(r_flat.astype(np.float32))
 
     # Stack all pixels to calculate true global mean and std
     all_synth = np.concatenate(synth_values)
@@ -58,14 +61,7 @@ def run_once_calculate_stats(coordinator):
 
     return results
 
-# --- HOW TO USE ---
-# 1. Run this function once.
-# 2. Copy the printed values.
-# 3. In your main training script, use them like this:
-#
-# REAL_MEAN = <value_from_print> / 255.0
-# REAL_STD  = <value_from_print> / 255.0
-# custom_norm = GlobalAndInstanceNorm(REAL_MEAN, REAL_STD)
+
 
 
 
@@ -104,3 +100,13 @@ if __name__ == "__main__":
     # 4. Run the calculation
     # This will iterate through the data and print your Mean and Std
     stats = run_once_calculate_stats(coordinator)
+
+
+# --- HOW TO USE ---
+# 1. Run this function once with GlobalAndInstanceNorm turned off (e.g. commented out).
+# 2. Copy the printed values.
+# 3. In your main training script, use them like this:
+#
+# REAL_MEAN = <value_from_print>
+# REAL_STD  = <value_from_print>
+# custom_norm = GlobalAndInstanceNorm(REAL_MEAN, REAL_STD)
