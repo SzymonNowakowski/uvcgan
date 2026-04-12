@@ -113,7 +113,7 @@ if __name__ == "__main__":
     'gradient_penalty' : None,
     'steps_per_epoch'  : 32 * 1024 // cmdargs.batch_size,
 # args
-    'label'      : f'bert-vit-unet-12-256',
+    'label'      : f'bert-vit-unet-12-160px',
     'outdir'     : os.path.join(ROOT_OUTDIR, 'synthetic2real'),
     'log_level'  : 'DEBUG',
     'checkpoint' : 100,
