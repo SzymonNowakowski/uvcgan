@@ -20,7 +20,7 @@ def run_once_calculate_stats(coordinator):
     real_values = []
 
     # Fix seed for one-time calculation consistency
-    np.random.seed(42)
+    np.random.seed(0)
     total_len = len(coordinator)
 
     for _ in tqdm(range(total_len), desc="Calculating stats", unit="sample"):
