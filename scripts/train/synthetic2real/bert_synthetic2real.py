@@ -3,6 +3,7 @@ import argparse
 from uvcgan import ROOT_OUTDIR, ROOT_DATA, train
 
 
+
 # Note: Classes are not defined here to keep the entry point clean.
 # They are dynamically loaded via hydra.utils.instantiate in uvcgan/data/data.py
 # based on the '_target_' paths provided in dataset_args.
@@ -51,7 +52,7 @@ if __name__ == "__main__":
                     '_target_': 'uvcgan.data.datasets.bio_dataset.RealBiologicalDataset',
                     'image_dir': os.path.join(ROOT_DATA,"synthetic2real/real/crop_2957"),
                     'metadata_csv_path': os.path.join(ROOT_DATA,"synthetic2real/real/data_summary_2957.csv"),
-                    'target_nm': 300,
+                    'target_nm': 320,
                     'target_px': 160
                 },
 

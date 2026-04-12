@@ -37,6 +37,7 @@ def select_transform(transform):
 
         result = [ select_single_transform(x) for x in transform ]
 
-    result.append(torchvision.transforms.ToTensor())
+    else:
+        result.append(torchvision.transforms.ToTensor())
 
     return torchvision.transforms.Compose(result)
