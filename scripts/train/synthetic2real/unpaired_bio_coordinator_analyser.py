@@ -2,6 +2,7 @@
 import numpy as np
 from tqdm import tqdm
 import os
+from uvcgan import ROOT_DATA
 
 from uvcgan.data.datasets.bio_dataset import UnpairedBioCoordinator, SyntheticPLBAdapter, RealBiologicalDataset
 from uvcgan.data.external.PLB.regression.src.plbregression.dataset import PLBDataset, RandomRotatedShiftedCrop
