@@ -54,7 +54,7 @@ def run_once_calculate_stats(coordinator):
     print(f"SYNTHETIC -> Mean: {results['synthetic']['mean']:.4f}, Std: {results['synthetic']['std']:.4f}")
     print(f"REAL      -> Mean: {results['real']['mean']:.4f}, Std: {results['real']['std']:.4f}")
     print("=" * 40)
-    print("\nUse these values (divided by 255.0) in your GlobalAndInstanceNorm class.")
+    print("\nUse these values in your GlobalAndInstanceNorm class.")
 
     return results
 
