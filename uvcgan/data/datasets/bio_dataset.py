@@ -196,6 +196,7 @@ class UnpairedBioCoordinator(Dataset):
 
         image_real = GlobalAndInstanceNorm(global_mean=0.2363, global_std=0.1224)(image_real)
         image_synth = GlobalAndInstanceNorm(global_mean=0.7367, global_std=0.1922)(image_synth)
+
         # Save a few samples for visual inspection
         if UnpairedBioCoordinator._samples_saved < UnpairedBioCoordinator._max_samples:
             self._dump_debug_sample(image_synth, image_real)
