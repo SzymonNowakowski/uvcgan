@@ -63,7 +63,7 @@ if __name__ == "__main__":
             'transform_val': None,
         },
         'image_shape': (1, 160, 160),
-        'epochs': 1000,
+        'epochs': 500,
         'discriminator': None,
         'generator': {
             'model' : 'vit-unet',
