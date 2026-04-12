@@ -30,8 +30,8 @@ def run_once_calculate_stats(coordinator):
         img_s, img_r = coordinator[idx]
 
         # Flatten and convert to float32 for precise averaging
-        synth_values.append(img_s.flatten().astype(np.float32))
-        real_values.append(img_r.flatten().astype(np.float32))
+        synth_values.append(img_s.flatten())
+        real_values.append(img_r.flatten())
 
     # Stack all pixels to calculate true global mean and std
     all_synth = np.concatenate(synth_values)
