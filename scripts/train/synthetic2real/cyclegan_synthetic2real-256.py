@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from uvcgan import ROOT_OUTDIR, train
+from uvcgan import ROOT_OUTDIR, ROOT_DATA, train
 from uvcgan.utils.parsers import add_preset_name_parser
 
 def parse_cmdargs():
@@ -25,10 +25,7 @@ def get_transfer_preset(cmdargs):
         return None
 
     if cmdargs.transfer == 'imagenet':
-        base_model = (
-            'bert_imagenet/model_d(imagedir)_m(simple-autoencoder)_d(None)'
-            f"_g({GEN_PRESETS[cmdargs.gen]['model']})_bert-{cmdargs.gen}-256"
-        )
+        raise NotImplementedError("Transfer from ImageNet is not implemented for Synthetic2Real CycleGANs since the domain gap is too large. Please use 'self' or 'none' instead.")
 
     if cmdargs.transfer == 'self':
         base_model = (
@@ -140,17 +137,45 @@ CYCLEGAN_PRESETS = {
 cmdargs   = parse_cmdargs()
 args_dict = {
     'batch_size' : 1,
-    'data' : {
-        'dataset' : 'cyclegan',
-        'dataset_args'   : {
-            'path'        : 'selfie2anime',
-            'align_train' : False,
+    'data': {
+        'dataset': 'unpaired-bio',  # Triggers the custom logic in uvcgan/data/data.py
+        'dataset_args': {
+            # 1. Main entry point: The Coordinator that syncs Domain A and B
+            '_target_': 'uvcgan.data.datasets.bio_dataset.UnpairedBioCoordinator',
+
+            # 2. First constructor argument: The adapter for synthetic data (Domain A)
+            'synth_adapter': {
+                '_target_': 'uvcgan.data.datasets.bio_dataset.SyntheticPLBAdapter',
+                'plb_instance': {
+                    # Recursive instantiation of the external research dataset
+                    '_target_': 'uvcgan.data.external.PLB.regression.src.plbregression.dataset.PLBDataset',
+                    'data_dir': os.path.join(ROOT_DATA,"synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/"),
+                    'return_tensors': False,
+                    'transforms': [
+                        {
+                            '_target_': 'uvcgan.data.external.PLB.regression.src.plbregression.dataset.RandomRotatedShiftedCrop',
+                            'size': 160,
+                            'interpolation': 'cubic'
+                        },
+                    # no microscopic noise
+                    ],
+                }
+            },
+
+            # 3. Second constructor argument: The real biological dataset (Domain B)
+            'real_dataset': {
+                '_target_': 'uvcgan.data.datasets.bio_dataset.RealBiologicalDataset',
+                'image_dir': os.path.join(ROOT_DATA,"synthetic2real/real/crop_2957"),
+                'metadata_csv_path': os.path.join(ROOT_DATA,"synthetic2real/real/data_summary_2957.csv"),
+                'target_nm': 320,
+                'target_px': 160
+            },
+
+            # Note: 'shared_transform' is injected automatically by 'instantiate'
+            # inside uvcgan/data/data.py using 'transform_train/val'
         },
-        'transform_train' : [
-            { 'name' : 'resize',      'size' : 286, },
-            { 'name' : 'random-crop', 'size' : 256, },
-            'random-flip-horizontal',
-        ],
+        'transform_train': None,
+        'transform_val': None,
     },
     'image_shape' : (1, 160, 160),
     'epochs'      : 500,
@@ -196,9 +221,9 @@ args_dict = {
 # args
     'label'  : (
         f'cyclegan_{cmdargs.gen}-{cmdargs.transfer}'
-        f'-{cmdargs.loss}-{cmdargs.gp}-{cmdargs.cycle}-256'
+        f'-{cmdargs.loss}-{cmdargs.gp}-{cmdargs.cycle}-160px'
     ),
-    'outdir' : os.path.join(ROOT_OUTDIR, 'selfie2anime'),
+    'outdir' : os.path.join(ROOT_OUTDIR, 'synthetic2real'),
     'log_level'  : 'DEBUG',
     'checkpoint' : 50,
     'workers'    : 1,       # for reproducibility
