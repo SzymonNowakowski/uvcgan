@@ -177,14 +177,27 @@ class UnpairedBioCoordinator(Dataset):
 
     def _dump_debug_sample(self, synth, real):
         """
-        Saves a side-by-side comparison of synthetic and real inputs.
+        Saves a side-by-side comparison of synthetic and real inputs to disk
+        and prints range statistics for verification.
         """
         idx = UnpairedBioCoordinator._samples_saved
-        # Concatenate horizontally (dim=2 for CxHxW tensors)
-        grid = torch.cat([synth, real], dim=2)
-
         save_path = UnpairedBioCoordinator._debug_dir / f"input_check_{idx}.png"
-        print(f"Saving debug sample {idx} to {save_path}")
 
-        # normalize=True scales values to [0, 1] for correct PNG visualization
-        vutils.save_image(grid, save_path, normalize=True)
+        # Check if file exists to avoid redundant I/O operations across epochs/workers
+        if not save_path.exists():
+            # Extract scalar values from tensors for logging
+            s_min, s_max = synth.min().item(), synth.max().item()
+            r_min, r_max = real.min().item(), real.max().item()
+
+            print(f"--- Debug Sample {idx} Stats ---")
+            print(f"  Synthetic: min={s_min:.4f}, max={s_max:.4f}")
+            print(f"  Real:      min={r_min:.4f}, max={r_max:.4f}")
+            print(f"  Saving to: {save_path}")
+
+            # Concatenate tensors along the width dimension (dim=2 for CHW format)
+            # to create a single side-by-side comparison image
+            grid = torch.cat([synth, real], dim=2)
+
+            # Save the image. normalize=True is crucial as it shifts the input
+            # range (e.g., [-1, 1]) to [0, 1] for correct PNG representation.
+            vutils.save_image(grid, save_path, normalize=True)
