@@ -6,7 +6,7 @@
 from torch.optim           import lr_scheduler
 from uvcgan.torch.select import extract_name_kwargs
 
-def linear_scheduler(optimizer, epochs_warmup, epochs_anneal, verbose = True):
+def linear_scheduler(optimizer, epochs_warmup, epochs_anneal):
 
     def lambda_rule(epoch, epochs_warmup, epochs_anneal):
         if epoch < epochs_warmup:
@@ -16,7 +16,7 @@ def linear_scheduler(optimizer, epochs_warmup, epochs_anneal, verbose = True):
 
     lr_fn = lambda epoch : lambda_rule(epoch, epochs_warmup, epochs_anneal)
 
-    return lr_scheduler.LambdaLR(optimizer, lr_fn, verbose = verbose)
+    return lr_scheduler.LambdaLR(optimizer, lr_fn)
 
 def get_scheduler(optimizer, scheduler):
     name, kwargs = extract_name_kwargs(scheduler)
