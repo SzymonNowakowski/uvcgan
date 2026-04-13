@@ -204,7 +204,7 @@ args_dict = {
             'init_gain' : 0.02,
         },
     },
-    'model' : 'cyclegan',
+    'model' : 'unpaired-bio',
     'model_args' : {
         **CYCLEGAN_PRESETS[cmdargs.cycle],
         'pool_size'  : 50,
