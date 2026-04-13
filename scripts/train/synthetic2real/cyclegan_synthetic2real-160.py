@@ -29,7 +29,7 @@ def get_transfer_preset(cmdargs):
 
     if cmdargs.transfer == 'self':
         base_model = (
-            'synthetic2real/model_d(cyclegan)_m(autoencoder)_d(None)'
+            'synthetic2real/model_d(unpaired-bio)_m(autoencoder)_d(None)'
             f"_g({GEN_PRESETS[cmdargs.gen]['model']})_bert-vit-unet-12-160px"
         )
 
@@ -204,7 +204,7 @@ args_dict = {
             'init_gain' : 0.02,
         },
     },
-    'model' : 'unpaired-bio',
+    'model' : 'cyclegan',
     'model_args' : {
         **CYCLEGAN_PRESETS[cmdargs.cycle],
         'pool_size'  : 50,
@@ -220,7 +220,7 @@ args_dict = {
     'transfer'         : get_transfer_preset(cmdargs),
 # args
     'label'  : (
-        f'cyclegan_{cmdargs.gen}-{cmdargs.transfer}'
+        f'unpaired-bio_{cmdargs.gen}-{cmdargs.transfer}'
         f'-{cmdargs.loss}-{cmdargs.gp}-{cmdargs.cycle}-160px'
     ),
     'outdir' : os.path.join(ROOT_OUTDIR, 'synthetic2real'),
