@@ -178,7 +178,7 @@ args_dict = {
         'transform_val': None,
     },
     'image_shape' : (1, 160, 160),
-    'epochs'      : 500,
+    'epochs'      : 250,
     'discriminator' : {
         'model' : 'basic',
         'model_args' : None,
