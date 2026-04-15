@@ -72,10 +72,10 @@ def run_bio_inference():
             dummy_tensor = torch.zeros_like(input_tensor)
 
             # Pass both to the model as a list
-            model.set_input([input_tensor, dummy_tensor])
+            model.set_input([dummy_tensor, input_tensor])
 
             model.forward_nograd()
-            translated_tensor = model.images.fake_b
+            translated_tensor = model.images.fake_a
 
         if translated_tensor is not None:
             # --- 3. UNNORMALIZE USING REAL STATS ---
