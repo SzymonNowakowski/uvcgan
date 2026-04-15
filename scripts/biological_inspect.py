@@ -41,7 +41,7 @@ def run_bio_inference():
     REAL_STATS = {'mean': 0.2363, 'std': 0.1224}
 
     # Load Model (Synthetic -> Real)
-    model_state = ModelState.from_str('source_to_target')
+    model_state = ModelState.from_str('eval')
     args, model, _ = start_model_eval(model_path, epoch=-1, model_state=model_state)
     model.eval()
 
