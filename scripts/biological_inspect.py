@@ -75,7 +75,7 @@ def run_bio_inference():
             model.set_input([input_tensor, dummy_tensor])
 
             model.forward_nograd()
-            translated_tensor = model.images.get('fake_B')
+            translated_tensor = model.images.fake_b
 
         if translated_tensor is not None:
             # --- 3. UNNORMALIZE USING REAL STATS ---
