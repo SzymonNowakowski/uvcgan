@@ -68,7 +68,7 @@ def run_bio_inference():
         input_tensor = bio_norm(input_tensor).to(model.device)
 
         with torch.no_grad():
-            model.set_input({'data': input_tensor})
+            model.set_input([input_tensor])
             model.forward_nograd()
             translated_tensor = model.images.get('fake_B')
 
