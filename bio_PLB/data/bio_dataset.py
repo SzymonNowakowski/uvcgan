@@ -1,5 +1,5 @@
 
-from uvcgan.data.external.PLB.regression.src.plbregression.dataset import PLBDataset
+from bio_PLB.external.PLB.regression.src.plbregression.dataset import PLBDataset
 
 import os
 import cv2

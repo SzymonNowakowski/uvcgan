@@ -6,7 +6,7 @@ from PIL import Image
 
 from uvcgan.utils.model_state import ModelState
 from uvcgan.eval.funcs import start_model_eval
-from uvcgan.data.datasets.bio_dataset import GlobalAndInstanceNorm
+from bio_PLB.data.bio_dataset import GlobalAndInstanceNorm
 
 
 def unnormalize_to_hwc(tensor, mean, std):

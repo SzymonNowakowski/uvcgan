@@ -141,11 +141,11 @@ args_dict = {
         'dataset': 'unpaired-bio',  # Triggers the custom logic in uvcgan/data/data.py
         'dataset_args': {
             # 1. Main entry point: The Coordinator that syncs Domain A and B
-            '_target_': 'uvcgan.data.datasets.bio_dataset.UnpairedBioCoordinator',
+            '_target_': 'bio_PLB.data.bio_dataset.UnpairedBioCoordinator',
 
             # 2. First constructor argument: The adapter for synthetic data (Domain A)
             'synth_adapter': {
-                '_target_': 'uvcgan.data.datasets.bio_dataset.SyntheticPLBAdapter',
+                '_target_': 'bio_PLB.data.bio_dataset.SyntheticPLBAdapter',
                 'plb_instance': {
                     # Recursive instantiation of the external research dataset
                     '_target_': 'uvcgan.data.external.PLB.regression.src.plbregression.dataset.PLBDataset',
@@ -164,7 +164,7 @@ args_dict = {
 
             # 3. Second constructor argument: The real biological dataset (Domain B)
             'real_dataset': {
-                '_target_': 'uvcgan.data.datasets.bio_dataset.RealBiologicalDataset',
+                '_target_': 'bio_PLB.data.bio_dataset.RealBiologicalDataset',
                 'image_dir': os.path.join(ROOT_DATA,"synthetic2real/real/crop_2957"),
                 'metadata_csv_path': os.path.join(ROOT_DATA,"synthetic2real/real/data_summary_2957.csv"),
                 'target_nm': 320,
