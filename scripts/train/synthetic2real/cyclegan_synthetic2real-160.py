@@ -227,6 +227,7 @@ args_dict = {
     'log_level'  : 'DEBUG',
     'checkpoint' : 50,
     'workers'    : 1,       # for reproducibility
+    'config'     : {'seed': 42,}
 }
 
 train(args_dict)

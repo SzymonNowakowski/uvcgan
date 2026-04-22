@@ -117,6 +117,7 @@ if __name__ == "__main__":
     'outdir'     : os.path.join(ROOT_OUTDIR, 'synthetic2real'),
     'log_level'  : 'DEBUG',
     'checkpoint' : 100,
+    'config'     : {'seed': 42,}
     }
 
     train(args_dict)
