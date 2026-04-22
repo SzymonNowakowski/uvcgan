@@ -1,3 +1,3 @@
 [submodule "uvcgan/data/external/PLB"]
-	path = uvcgan/data/external/PLB
+	path = bio_PLB/external/PLB
 	url = https://github.com/center4ml/PLB.git
