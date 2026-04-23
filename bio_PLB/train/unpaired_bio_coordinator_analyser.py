@@ -6,7 +6,7 @@ from uvcgan import ROOT_DATA
 from torchvision import transforms
 
 from bio_PLB.data.bio_dataset import UnpairedBioCoordinator, SyntheticPLBAdapter, RealBiologicalDataset
-from uvcgan.data.external.PLB.regression.src.plbregression.dataset import PLBDataset, RandomRotatedShiftedCrop
+from bio_PLB.external.PLB.regression.src.plbregression.dataset import PLBDataset, RandomRotatedShiftedCrop
 
 def run_once_calculate_stats(coordinator):
     """

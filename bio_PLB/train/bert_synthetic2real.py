@@ -127,7 +127,7 @@ def main():
 
 
     model = autoencoder_wrapper(args_dict)
-
+    dataset = instantiate(args_dict.data.dataset_args)
 
     loggers = [pl.loggers.TensorBoardLogger(save_dir='.', name=args_dict.logging_dir, default_hp_metric=False,
                                             version=args_dict.label + "-" + bio_PLB.tools.get_git_revision_short_hash())]

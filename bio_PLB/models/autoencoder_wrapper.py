@@ -14,7 +14,7 @@ class AutoencoderWrapper(pl.LightningModule):
         init_weights(self.generator_a, args_dict.generator.weight_init)
         init_weights(self.generator_b, args_dict.generator.weight_init)
         self.loss = instantiate(args_dict.loss)
-        self.dataset = instantiate(args_dict.data.dataset_args)
+
         self.masking = instantiate(args_dict.masking)
         self.save_hyperparameters()
 
