@@ -108,7 +108,7 @@ def main():
         'T_mult'    : 1,
         'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
     },
-    'loss'             : {'_target' : 'torch.nn.L1Loss'},
+    'loss'             : {'_target_' : 'torch.nn.L1Loss'},
 #    'gradient_penalty' : None,
 #    'steps_per_epoch'  : "${eval:'32 * 1024 // ${batch_size}'}",
 # args

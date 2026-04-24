@@ -56,7 +56,6 @@ class AutoencoderWrapper(pl.LightningModule):
         """get predictions, losses and mean errors (MAE)"""
         # execute the logic from uvcgan/cgan/autoencoder.py set_input & froward functions
 
-        print(batch[0].size())
         self.images.real_a = batch[0].to(self.device)
         self.images.real_b = batch[1].to(self.device)
 
