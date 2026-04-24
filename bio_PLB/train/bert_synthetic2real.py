@@ -53,7 +53,9 @@ def main():
                     'target_px': '${target_px}'
                     # TODO: add mean/std
                 },
-                'shared_transform': [ToTensor()],
+                'shared_transform': [
+                    {'_target_': 'torchvision.transforms.ToTensor'},
+                ]
             },
             'transform_train': None,
             'transform_val': None,
