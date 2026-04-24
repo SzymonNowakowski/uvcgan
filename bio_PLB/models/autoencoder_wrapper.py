@@ -29,13 +29,13 @@ class AutoencoderWrapper(pl.LightningModule):
     def configure_optimizers(self):
         # 1. Instantiate the optimizer, passing model parameters
         optimizer = instantiate(
-            self.hparams.generator.optimizer,
+            self.hparams.args_dict.generator.optimizer,
             params=self.parameters()
         )
 
         # 2. Instantiate the scheduler, passing the optimizer
         scheduler = instantiate(
-            self.hparams.scheduler,
+            self.hparams.args_dict.scheduler,
             optimizer=optimizer
         )
 
