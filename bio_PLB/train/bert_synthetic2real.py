@@ -65,13 +65,13 @@ def main():
             'transform_train': None,
             'transform_val': None,
         },
-        'image_shape': (1, '${target_px}', '${target_px}'),
         'epochs': 500,
         'discriminator': None,
         'generator': {
             'model': {
             #'model' : 'vit-unet',
             '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
+            'image_shape': (1, '${target_px}', '${target_px}'),
             'features'           : 384,
             'n_heads'            : 6,
             'n_blocks'           : 12,
