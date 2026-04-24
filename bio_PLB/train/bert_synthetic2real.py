@@ -99,13 +99,10 @@ def main():
         }
     },
     'model'      : 'autoencoder',
-    'model_args' : {  #TODO use them !!!
-        'joint'   : True,
-        'masking' : {
+    'masking' : {
             '_target_' : 'uvcgan.torch.image_masking.ImagePatchRandomMasking',
             'patch_size' : (16, 16),
             'fraction'   : 0.4,
-        },
     },
     'scheduler' : {
         '_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',

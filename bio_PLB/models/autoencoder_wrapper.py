@@ -16,7 +16,14 @@ class AutoencoderWrapper(pl.LightningModule):
         self.loss = instantiate(args_dict.loss)
 
         self.masking = instantiate(args_dict.masking)
+        self.configure_images()
+        # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
         self.save_hyperparameters()
+
+    def configure_images(self):    # execute the logic from uvcgan/cgan/autoencoder.py configure_images function
+        image_types = [ 'real_a', 'reco_a', 'real_b', 'reco_b', 'masked_a', 'masked_b' ]
+        for image_type in image_types:
+            self.images[image_type] = None
 
     def configure_optimizers(self):
         # 1. Instantiate the optimizer, passing model parameters
@@ -44,19 +51,28 @@ class AutoencoderWrapper(pl.LightningModule):
 
     def process_batch_supervised(self, batch):
         """get predictions, losses and mean errors (MAE)"""
-        inputs, targets = batch
-        inputs  = inputs.to(self.device)
-        targets = targets.to(self.device)
+        # execute the logic from uvcgan/cgan/autoencoder.py set_input & froward functions
 
-        preds = self(inputs)
+        self.images.real_a = batch[0].to(self.device)
+        self.images.real_b = batch[1].to(self.device)
 
-        loss    = self.loss(preds, targets)
+        self.images.masked_a = self.masking(self.images.real_a)
+        self.images.masked_b = self.masking(self.images.real_b)
 
-        #metric_fn = torch.nn.L1Loss()
-        #metric    = metric_fn(preds, targets)
+        self.images.reco_a = self.generator_a(self.images.masked_a)
+        self.images.reco_b = self.generator_b(self.images.masked_b)
 
-        losses  = { 'final': loss }
-        metrics = { }#'mae': metric }
+        self.loss_a = self.loss(self.images.real_b, self.images.reco_b)
+        self.loss_b = self.loss(self.images.masked_a, self.images.reco_a)
+
+        preds = (self.images.reco_a, self.images.reco_b)
+
+        losses  = { 'loss_a': self.loss_a,
+                    'loss_b': self.loss_b,
+                    'final': self.loss_a + self.loss_b
+                  }
+
+        metrics = { }
 
         return preds, losses, metrics
 
