@@ -2,6 +2,7 @@ import os
 
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
+from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 
 from bio_PLB.models.autoencoder_wrapper import AutoencoderWrapper
@@ -25,6 +26,7 @@ def main():
         'outdir': 'outdir/synthetic2real',
         'batch_size': 16,
         'target_px': 160,
+        'num_workers': 16,
         'data': {
             'dataset_args': {
                 '_target_': 'bio_PLB.data.bio_synthetic_coordinator.BioSyntheticCoordinator',
@@ -121,6 +123,7 @@ def main():
 
     model = AutoencoderWrapper(args_dict)
     dataset = instantiate(args_dict.data.dataset_args)
+    dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=args_dict.shuffle, num_workers=args_dict.num_workers)
 
     loggers = [pl.loggers.TensorBoardLogger(save_dir='.', name=args_dict.logging_dir, default_hp_metric=False,
                                             version=args_dict.label + "-" + bio_PLB.tools.get_git_revision_short_hash())]
@@ -155,7 +158,7 @@ def main():
         # progress_bar_refresh_rate=1,
     )
 
-    trainer.fit(model, dataset)
+    trainer.fit(model, dataloader)
 
 
 if __name__ == "__main__":
