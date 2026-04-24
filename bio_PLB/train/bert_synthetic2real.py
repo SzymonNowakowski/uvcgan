@@ -3,7 +3,7 @@ import os
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
 
-from bio_PLB.models import autoencoder_wrapper
+from bio_PLB.models.autoencoder_wrapper import AutoencoderWrapper
 
 import pytorch_lightning as pl
 import torch
@@ -123,7 +123,7 @@ def main():
 
 
 
-    model = autoencoder_wrapper(args_dict)
+    model = AutoencoderWrapper(args_dict)
     dataset = instantiate(args_dict.data.dataset_args)
 
     loggers = [pl.loggers.TensorBoardLogger(save_dir='.', name=args_dict.logging_dir, default_hp_metric=False,
