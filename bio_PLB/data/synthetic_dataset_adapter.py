@@ -1,5 +1,7 @@
 from torch.utils.data import Dataset
 
+from uvcgan.data.external.PLB.regression.src.plbregression.dataset import PLBDataset
+
 
 class SyntheticDatasetAdapter(Dataset):
     """
