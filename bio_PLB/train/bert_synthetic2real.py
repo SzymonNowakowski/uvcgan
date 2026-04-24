@@ -26,9 +26,9 @@ def main():
         'target_px': 160,
         'data': {
             'dataset_args': {
-                '_target_': 'bio_PLB.data.bio_dataset.UnpairedBioCoordinator',
+                '_target_': 'bio_PLB.data.bio_synthetic_coordinator.BioSyntheticCoordinator',
                 'synth_adapter': {
-                    '_target_': 'bio_PLB.data.bio_dataset.SyntheticPLBAdapter',
+                    '_target_': 'bio_PLB.data.synthetic_dataset_adapter.SyntheticDatasetAdapter',
                     'plb_instance': {
                         # Recursive instantiation of the external research dataset
                         '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.dataset.PLBDataset',
@@ -46,14 +46,14 @@ def main():
                     }
                 },
                 'real_dataset': {
-                    '_target_': 'bio_PLB.data.bio_dataset.RealBiologicalDataset',
+                    '_target_': 'bio_PLB.data.real_biological_dataset.RealBiologicalDataset',
                     'image_dir': "data/synthetic2real/real/crop_2957",
                     'metadata_csv_path': "data/synthetic2real/real/data_summary_2957.csv",
                     'target_nm': "${eval:'2 * ${target_px}'}",
                     'target_px': '${target_px}'
                     # TODO: add mean/std
                 },
-                'shared_transform': [
+                'shared_transforms': [
                     {'_target_': 'torchvision.transforms.ToTensor'},
                 ]
             },

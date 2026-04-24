@@ -20,10 +20,10 @@ class BioSyntheticCoordinator(Dataset):
     _max_samples = 10
     _debug_dir = Path("debug_inputs")
 
-    def __init__(self, synth_adapter, real_dataset, shared_transform=None):
+    def __init__(self, synth_adapter, real_dataset, shared_transforms=None):
         self.synth_adapter = synth_adapter
         self.real_dataset = real_dataset
-        self.shared_transform = shared_transform
+        self.shared_transforms = shared_transforms
 
         # Create debug directory if it doesn't exist
         if not BioSyntheticCoordinator._debug_dir.exists():
@@ -41,9 +41,10 @@ class BioSyntheticCoordinator(Dataset):
         image_synth = self.synth_adapter[random_idx]
 
         # Final shared transforms
-        if self.shared_transform:
-            image_real = self.shared_transform(image_real)
-            image_synth = self.shared_transform(image_synth)
+        if self.shared_transforms is not None:
+            for shared_transform in self.shared_transforms:
+                image_real = shared_transform(image_real)
+                image_synth = shared_transform(image_synth)
 
         image_real = GlobalAndInstanceNorm(global_mean=0.2363, global_std=0.1224)(image_real)
         image_synth = GlobalAndInstanceNorm(global_mean=0.7367, global_std=0.1922)(image_synth)
