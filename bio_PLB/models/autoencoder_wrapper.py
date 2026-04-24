@@ -21,7 +21,7 @@ class AutoencoderWrapper(pl.LightningModule):
         self.save_hyperparameters()
 
     def configure_images(self):    # execute the logic from uvcgan/cgan/autoencoder.py configure_images function
-        self.images = []
+        self.images = {}
         image_types = [ 'real_a', 'reco_a', 'real_b', 'reco_b', 'masked_a', 'masked_b' ]
         for image_type in image_types:
             self.images[image_type] = None
