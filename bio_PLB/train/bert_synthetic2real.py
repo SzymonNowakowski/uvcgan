@@ -34,12 +34,12 @@ def main():
                     '_target_': 'bio_PLB.data.bio_dataset.SyntheticPLBAdapter',
                     'plb_instance': {
                         # Recursive instantiation of the external research dataset
-                        '_target_': 'uvcgan.data.external.PLB.regression.src.plbregression.dataset.PLBDataset',
+                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.dataset.PLBDataset',
                         'data_dir': "data/synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/",
                         'return_tensors': False,
                         'transforms': [
                             {
-                                '_target_': 'uvcgan.data.external.PLB.regression.src.plbregression.dataset.RandomRotatedShiftedCrop',
+                                '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.dataset.RandomRotatedShiftedCrop',
                                 'size': '${target_px}',
                                 'interpolation': 'cubic',
                                 #TODO: add mean/std
