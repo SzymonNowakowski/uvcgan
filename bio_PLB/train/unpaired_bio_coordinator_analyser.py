@@ -5,7 +5,9 @@ import os
 from uvcgan import ROOT_DATA
 from torchvision import transforms
 
-from bio_PLB.data.bio_dataset import UnpairedBioCoordinator, SyntheticPLBAdapter, RealBiologicalDataset
+from bio_PLB.data.bio_synthetic_coordinator import BioSyntheticCoordinator
+from bio_PLB.data.synthetic_dataset_adapter import SyntheticDatasetAdapter
+from bio_PLB.data.real_biological_dataset import RealBiologicalDataset
 from bio_PLB.external.PLB.regression.src.plbregression.dataset import PLBDataset, RandomRotatedShiftedCrop
 
 def run_once_calculate_stats(coordinator):
@@ -76,7 +78,7 @@ if __name__ == "__main__":
         ]
     )
 
-    synth_adapter = SyntheticPLBAdapter(plb_instance=plb_internal)
+    synth_adapter = SyntheticDatasetAdapter(plb_instance=plb_internal)
 
     # 2. Initialize the Real Biological Domain B
     real_dataset = RealBiologicalDataset(
@@ -88,7 +90,7 @@ if __name__ == "__main__":
 
     # 3. Initialize the Coordinator with shared_transform=None
     # This ensures we get the raw numpy/uint8 arrays in the range [0, 255]
-    coordinator = UnpairedBioCoordinator(
+    coordinator = BioSyntheticCoordinator(
         synth_adapter=synth_adapter,
         real_dataset=real_dataset,
         shared_transform=transforms.ToTensor()

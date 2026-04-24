@@ -2,6 +2,7 @@ import os
 
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
+from torchvision.transforms import ToTensor
 
 from bio_PLB.models.autoencoder_wrapper import AutoencoderWrapper
 
@@ -24,12 +25,8 @@ def main():
         'batch_size': 16,
         'target_px': 160,
         'data': {
-            'dataset': 'unpaired-bio',  # Triggers the custom logic in uvcgan/data/data.py, #TODO REMOVE
             'dataset_args': {
-                # 1. Main entry point: The Coordinator that syncs Domain A and B
                 '_target_': 'bio_PLB.data.bio_dataset.UnpairedBioCoordinator',
-
-                # 2. First constructor argument: The adapter for synthetic data (Domain A)
                 'synth_adapter': {
                     '_target_': 'bio_PLB.data.bio_dataset.SyntheticPLBAdapter',
                     'plb_instance': {
@@ -48,8 +45,6 @@ def main():
                         ],
                     }
                 },
-
-                # 3. Second constructor argument: The real biological dataset (Domain B)
                 'real_dataset': {
                     '_target_': 'bio_PLB.data.bio_dataset.RealBiologicalDataset',
                     'image_dir': "data/synthetic2real/real/crop_2957",
@@ -58,9 +53,7 @@ def main():
                     'target_px': '${target_px}'
                     # TODO: add mean/std
                 },
-                # TODO change this behaviour from NOTE
-                # Note: 'shared_transform' is injected automatically by 'instantiate'
-                # inside uvcgan/data/data.py using 'transform_train/val'
+                'shared_transform': [ToTensor()],
             },
             'transform_train': None,
             'transform_val': None,
