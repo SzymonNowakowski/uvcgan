@@ -3,6 +3,7 @@ import torch
 from uvcgan.base.weight_init import init_weights
 
 from hydra.utils import instantiate
+from lightning_fabric.utilities.data import AttributeDict
 
 
 class AutoencoderWrapper(pl.LightningModule):
@@ -17,11 +18,12 @@ class AutoencoderWrapper(pl.LightningModule):
 
         self.masking = instantiate(args_dict.masking)
         self.configure_images()
+
         # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
         self.save_hyperparameters()
 
     def configure_images(self):    # execute the logic from uvcgan/cgan/autoencoder.py configure_images function
-        self.images = {}
+        self.images = AttributeDict
         image_types = [ 'real_a', 'reco_a', 'real_b', 'reco_b', 'masked_a', 'masked_b' ]
         for image_type in image_types:
             self.images[image_type] = None
