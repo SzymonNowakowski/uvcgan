@@ -24,7 +24,7 @@ def main():
 
     args_dict = OmegaConf.create({
         'outdir': 'outdir/synthetic2real',
-        'batch_size': 32,
+        'batch_size': 24,
         'target_px': 160,
         'num_workers': 16,
         'data': {
