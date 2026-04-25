@@ -45,7 +45,7 @@ class AutoencoderWrapper(pl.LightningModule):
             "optimizer": optimizer,
             "lr_scheduler": {
                 "scheduler": scheduler,
-                "interval": "step",  # or "epoch"
+                "interval": "epoch",  # or "epoch"
             },
         }
 
