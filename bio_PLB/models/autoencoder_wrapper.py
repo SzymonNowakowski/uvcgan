@@ -29,26 +29,28 @@ class AutoencoderWrapper(pl.LightningModule):
             self.images[image_type] = None
 
     def configure_optimizers(self):
-        # 1. Instantiate the optimizer, passing model parameters
+        # instantiate the optimizer, passing model parameters
         optimizer = instantiate(
             self.hparams.args_dict.generator.optimizer,
             params=self.parameters()
         )
 
-        # 2. Instantiate the scheduler, passing the optimizer
-        scheduler = instantiate(
-            self.hparams.args_dict.scheduler,
-            optimizer=optimizer
-        )
+        # instantiate the scheduler, passing the optimizer
+        if self.hparams.args_dict.get("scheduler"):
+            scheduler = instantiate(
+                self.hparams.args_dict.scheduler,
+                optimizer=optimizer
+            )
 
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "interval": "epoch",  # or "epoch"
-            },
-        }
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "interval": "epoch",  # or "epoch"
+                },
+            }
 
+        return { "optimizer": optimizer }
     def forward(self, x):
         return #TODO
 

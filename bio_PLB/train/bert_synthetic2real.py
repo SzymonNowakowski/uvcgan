@@ -63,7 +63,7 @@ def main():
             'transform_train': None,
             'transform_val': None,
         },
-        'epochs': 500,
+        'epochs': 1500,
         'discriminator': None,
         'generator': {
             'model': {
@@ -87,7 +87,7 @@ def main():
             },
             'optimizer'  : {
             '_target_': 'torch.optim.AdamW',  # Define the class path here
-            'lr'      : "${eval:'${batch_size} * 5e-3 / 512'}",
+            'lr'      : "${eval:'${batch_size} * 2e-3 / 512'}",
             'betas'   : (0.9, 0.99),
             'weight_decay' : 0.05,
         },
@@ -102,12 +102,12 @@ def main():
             'patch_size' : (16, 16),
             'fraction'   : 0.4,
     },
-    'scheduler' : {
+    'scheduler' : None,'''{
         '_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',
         'T_0'       : 500,
         'T_mult'    : 1,
         'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
-    },
+    },'''
     'loss'             : {'_target_' : 'torch.nn.L1Loss'},
 #    'gradient_penalty' : None,
 #    'steps_per_epoch'  : "${eval:'32 * 1024 // ${batch_size}'}",
