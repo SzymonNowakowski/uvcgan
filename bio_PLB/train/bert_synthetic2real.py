@@ -71,7 +71,7 @@ def main():
             '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
             'image_shape': (1, '${target_px}', '${target_px}'),
             'features'           : 128,
-            'n_heads'            : 6,
+            'n_heads'            : 4,
             'n_blocks'           : 4,
             'ffn_features'       : 512,
             'embed_features'     : 128,
