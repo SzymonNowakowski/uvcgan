@@ -24,7 +24,7 @@ def main():
 
     args_dict = OmegaConf.create({
         'outdir': 'outdir/synthetic2real',
-        'batch_size': 24,
+        'batch_size': 128,
         'target_px': 160,
         'num_workers': 16,
         'data': {
@@ -70,11 +70,11 @@ def main():
             #'model' : 'vit-unet',
             '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
             'image_shape': (1, '${target_px}', '${target_px}'),
-            'features'           : 384,
+            'features'           : 128,
             'n_heads'            : 6,
-            'n_blocks'           : 12,
-            'ffn_features'       : 1536,
-            'embed_features'     : 384,
+            'n_blocks'           : 4,
+            'ffn_features'       : 512,
+            'embed_features'     : 128,
             'activ'              : 'gelu',
             'norm'               : 'layer',
             'unet_features_list' : [48, 96, 192, 384],
