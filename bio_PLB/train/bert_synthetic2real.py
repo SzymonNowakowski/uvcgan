@@ -102,12 +102,12 @@ def main():
             'patch_size' : (16, 16),
             'fraction'   : 0.4,
     },
-    'scheduler' : None,'''{
-        '_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',
-        'T_0'       : 500,
-        'T_mult'    : 1,
-        'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
-    },'''
+    'scheduler' : None,#{
+        #'_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',
+        #'T_0'       : 500,
+        #'T_mult'    : 1,
+        #'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
+    #},
     'loss'             : {'_target_' : 'torch.nn.L1Loss'},
 #    'gradient_penalty' : None,
 #    'steps_per_epoch'  : "${eval:'32 * 1024 // ${batch_size}'}",

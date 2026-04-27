@@ -51,6 +51,8 @@ class AutoencoderWrapper(pl.LightningModule):
             }
 
         return { "optimizer": optimizer }
+
+
     def forward(self, x):
         return #TODO
 
