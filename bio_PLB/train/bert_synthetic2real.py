@@ -102,7 +102,7 @@ def main():
             'patch_size' : (16, 16),
             'fraction'   : 0.4,
     },
-    'scheduler' : None,'''{
+    'scheduler' : null,'''{
         '_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',
         'T_0'       : 500,
         'T_mult'    : 1,
