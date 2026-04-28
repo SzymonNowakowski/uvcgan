@@ -23,7 +23,7 @@ def main():
     OmegaConf.register_new_resolver("eval", eval)
 
     args_dict = OmegaConf.create({
-        'outdir': 'outdir/synthetic2real',
+        'outdir': 'outdir',
         'batch_size': 24,
         'target_px': 160,
         'num_workers': 16,
