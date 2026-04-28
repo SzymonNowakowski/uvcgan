@@ -73,8 +73,8 @@ class AutoencoderWrapper(pl.LightningModule):
         preds.reco_a = self.generator_a(preds.masked_a)
         preds.reco_b = self.generator_b(preds.masked_b)
 
-        loss_a = self.loss(preds.real_b, preds.reco_b)
-        loss_b = self.loss(preds.masked_a, preds.reco_a)
+        loss_a = self.loss(preds.real_a, preds.reco_a)
+        loss_b = self.loss(preds.real_b, preds.reco_b)
 
 
         losses  = { 'loss_a': loss_a,
