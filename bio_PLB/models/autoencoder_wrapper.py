@@ -99,24 +99,19 @@ class AutoencoderWrapper(pl.LightningModule):
         subdir = os.path.join(outdir, get_git_revision_short_hash())
         os.makedirs(subdir, exist_ok=True)
         # for preds dictionary, save the batch of real_a, real_b, masked_a, masked_b, reco_a, reco_b images to files
-        # the batched images should be arranged in rows of the resulting bigger image in this order: real_a, masked_a, reco_a into the file self.current_epoch_a.png
-        # the batched images should be arranged in rows of the resulting bigger image in this order: real_b, masked_b, reco_b into the file self.current_epoch_b.png
+        # the file self.current_epoch_xxx.png:
+        #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        batch_size = preds.real_a.size(0)
+        def save_image_group(img1, img2, img3, filename):
+            grid1 = make_grid(img1, nrow=1)
+            grid2 = make_grid(img2, nrow=1)
+            grid3 = make_grid(img3, nrow=1)
+            big_image = torch.cat([grid1, grid2, grid3], dim=2)
+            save_image(big_image, filename)
 
-        # For a: arrange real_a, masked_a, reco_a in rows
-        grid_real_a = make_grid(preds.real_a, nrow=batch_size)
-        grid_masked_a = make_grid(preds.masked_a, nrow=batch_size)
-        grid_reco_a = make_grid(preds.reco_a, nrow=batch_size)
-        big_image_a = torch.cat([grid_real_a, grid_masked_a, grid_reco_a], dim=1)
-        save_image(big_image_a, os.path.join(subdir, f"{self.current_epoch}_a.png"))
+        save_image_group(preds.real_a, preds.masked_a, preds.reco_a, os.path.join(subdir, f"{self.current_epoch}_a.png"))
+        save_image_group(preds.real_b, preds.masked_b, preds.reco_b, os.path.join(subdir, f"{self.current_epoch}_b.png"))
 
-        # For b: arrange real_b, masked_b, reco_b in rows
-        grid_real_b = make_grid(preds.real_b, nrow=batch_size)
-        grid_masked_b = make_grid(preds.masked_b, nrow=batch_size)
-        grid_reco_b = make_grid(preds.reco_b, nrow=batch_size)
-        big_image_b = torch.cat([grid_real_b, grid_masked_b, grid_reco_b], dim=1)
-        save_image(big_image_b, os.path.join(subdir, f"{self.current_epoch}_b.png"))
 
     def training_step(self, batch, batch_idx):
         # "batch" is the output of the training data loader.
