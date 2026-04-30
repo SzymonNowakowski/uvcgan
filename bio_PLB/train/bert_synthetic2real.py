@@ -24,9 +24,9 @@ def main():
 
     args_dict = OmegaConf.create({
         'outdir': 'outdir',
-        'batch_size': 32,
+        'batch_size': 24,
         'target_px': 160,
-        'num_workers': 16,
+        'num_workers': 19   #19 is the number of cores on the machine
         'data': {
             'dataset_args': {
                 '_target_': 'bio_PLB.data.bio_synthetic_coordinator.BioSyntheticCoordinator',
@@ -70,11 +70,11 @@ def main():
             #'model' : 'vit-unet',
             '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
             'image_shape': (1, '${target_px}', '${target_px}'),
-            'features'           : 128,
-            'n_heads'            : 4,
-            'n_blocks'           : 4,
-            'ffn_features'       : 512,
-            'embed_features'     : 128,
+            'features'           : 384,
+            'n_heads'            : 6,
+            'n_blocks'           : 12,
+            'ffn_features'       : 1536,
+            'embed_features'     : 384,
             'activ'              : 'gelu',
             'norm'               : 'layer',
             'unet_features_list' : [48, 96, 192, 384],
