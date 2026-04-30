@@ -26,7 +26,7 @@ def main():
         'outdir': 'outdir',
         'batch_size': 24,
         'target_px': 160,
-        'num_workers': 19   #19 is the number of cores on the machine
+        'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
             'dataset_args': {
                 '_target_': 'bio_PLB.data.bio_synthetic_coordinator.BioSyntheticCoordinator',
