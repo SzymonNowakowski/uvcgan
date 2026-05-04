@@ -35,34 +35,35 @@ def main():
                 # image_real = GlobalAndInstanceNorm(global_mean=0.2363, global_std=0.1224)(image_real)
                 # image_synth = GlobalAndInstanceNorm(global_mean=0.7367, global_std=0.1922)(image_synth)
                 'datasets': [
-                {
-                    '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.SyntheticDatasetAdapter',
-                    'synthetic_dataset_instance': {
-                        # Recursive instantiation of the external research dataset
-                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.synthetic_dataset.SyntheticDataset',
-                        'data_dir': "data/synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/",
-                        'return_tensors': False,
-                        'transforms': [
-                            {
-                                '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.transforms.RandomRotatedShiftedCrop',
-                                'target_px': '${target_px}',
-                                'interpolation': 'cubic',
-                                'allow_background_crop': False,
-                                #TODO: add mean/std
-                            },
-                        # no microscopic noise
-                        ],
+                    {
+                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.SyntheticDatasetAdapter',
+                        'synthetic_dataset_instance': {
+                            # Recursive instantiation of the external research dataset
+                            '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.synthetic_dataset.SyntheticDataset',
+                            'data_dir': "data/synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/",
+                            'transforms': [
+                                {
+                                    '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.transforms.RandomRotatedShiftedCrop',
+                                    'target_px': '${target_px}',
+                                    'interpolation': 'cubic',
+                                    'allow_background_crop': False,
+                                    #TODO: add mean/std
+                                },
+                            # no microscopic noise
+                            ],
+                            'return_tensors': True,
+                        }
+                    },
+                    {
+                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
+                        'image_dir': "data/synthetic2real/real/crop_2957",
+                        'metadata_csv_path': "data/synthetic2real/real/data_summary_2957.csv",
+                        'target_nm': "${eval:'2 * ${target_px}'}",
+                        'target_px': '${target_px}',
+                        'return_tensors': True,
+                        # TODO: add mean/std
                     }
-                },
-                {
-                    '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
-                    'image_dir': "data/synthetic2real/real/crop_2957",
-                    'metadata_csv_path': "data/synthetic2real/real/data_summary_2957.csv",
-                    'target_nm': "${eval:'2 * ${target_px}'}",
-                    'target_px': '${target_px}',
-                    'return_tensors': True,
-                    # TODO: add mean/std
-                }],
+                ],
                 'main_dataset': 1,  # experimental dataset is main
                 #'shared_transforms': [
                 #    {'_target_': 'torchvision.transforms.ToTensor'},
