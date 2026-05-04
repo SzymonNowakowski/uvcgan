@@ -45,7 +45,7 @@ def main():
                         'transforms': [
                             {
                                 '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.transforms.RandomRotatedShiftedCrop',
-                                'size': '${target_px}',
+                                'target_px': '${target_px}',
                                 'interpolation': 'cubic',
                                 'allow_background_crop': False,
                                 #TODO: add mean/std
