@@ -62,6 +62,15 @@ def main():
                         'target_px': '${target_px}',
                         'return_tensors': True,
                         # TODO: add mean/std
+                    },
+                    {
+                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
+                        'image_dir': "data/synthetic2real/backgrounds/tla_spireai",
+                        'metadata_csv_path': "data/synthetic2real/backgrounds/background_files.csv",
+                        'target_nm': "${eval:'2 * ${target_px}'}",
+                        'target_px': '${target_px}',
+                        'return_tensors': True,
+                        # TODO: add mean/std
                     }
                 ],
                 'main_dataset': 1,  # experimental dataset is main

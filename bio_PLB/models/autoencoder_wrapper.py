@@ -15,10 +15,10 @@ class AutoencoderWrapper(pl.LightningModule):
     def __init__(self, args_dict):
         super().__init__()
         # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
-        self.generator_a = instantiate(args_dict.generator.model)
-        self.generator_b = instantiate(args_dict.generator.model)
-        init_weights(self.generator_a, args_dict.generator.weight_init)
-        init_weights(self.generator_b, args_dict.generator.weight_init)
+        self.generator_synthetic = instantiate(args_dict.generator.model)
+        self.generator_experimental = instantiate(args_dict.generator.model)
+        init_weights(self.generator_synthetic, args_dict.generator.weight_init)
+        init_weights(self.generator_experimental, args_dict.generator.weight_init)
         self.loss = instantiate(args_dict.loss)
 
         self.masking = instantiate(args_dict.masking)
@@ -64,22 +64,26 @@ class AutoencoderWrapper(pl.LightningModule):
         #for image_type in image_types:
         #    preds[image_type] = None
 
-        preds.real_a = batch[0].to(self.device)
-        preds.real_b = batch[1].to(self.device)
+        preds.pure_synthetic = batch[0].to(self.device)
 
-        preds.masked_a = self.masking(preds.real_a)
-        preds.masked_b = self.masking(preds.real_b)
+        # overlaying random background
+        # over the synthetic image
+        preds.real_synthetic = preds.pure_synthetic * batch[2].to(self.device)
+        preds.real_experimental = batch[1].to(self.device)
 
-        preds.reco_a = self.generator_a(preds.masked_a)
-        preds.reco_b = self.generator_b(preds.masked_b)
+        preds.masked_synthetic = self.masking(preds.real_synthetic)
+        preds.masked_experimental = self.masking(preds.real_experimental)
 
-        loss_a = self.loss(preds.real_a, preds.reco_a)
-        loss_b = self.loss(preds.real_b, preds.reco_b)
+        preds.reco_synthetic = self.generator_synthetic(preds.masked_synthetic)
+        preds.reco_experimental = self.generator_experimental(preds.masked_experimental)
+
+        loss_synthetic = self.loss(preds.real_synthetic, preds.reco_synthetic)
+        loss_experimental = self.loss(preds.real_experimental, preds.reco_experimental)
 
 
-        losses  = { 'loss_a': loss_a,
-                    'loss_b': loss_b,
-                    'final': loss_a + loss_b
+        losses  = { 'loss_synthetic': loss_synthetic,
+                    'loss_experimental': loss_experimental,
+                    'final': loss_synthetic + loss_experimental
                   }
 
         metrics = { }
@@ -102,15 +106,19 @@ class AutoencoderWrapper(pl.LightningModule):
         # the file self.current_epoch_xxx.png:
         #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        def save_image_group(img1, img2, img3, filename):
+        def save_image_group(img1, img2, img3, filename, img4=None):
             grid1 = make_grid(img1, nrow=1)
             grid2 = make_grid(img2, nrow=1)
             grid3 = make_grid(img3, nrow=1)
-            big_image = torch.cat([grid1, grid2, grid3], dim=2)
+            if img4 is not None:
+                grid4 = make_grid(img4, nrow=1)
+                big_image = torch.cat([grid1, grid2, grid3, grid4], dim=2)
+            else:
+                big_image = torch.cat([grid1, grid2, grid3], dim=2)
             save_image(big_image, filename)
 
-        save_image_group(preds.real_a, preds.masked_a, preds.reco_a, os.path.join(subdir, f"{self.current_epoch}_a.png"))
-        save_image_group(preds.real_b, preds.masked_b, preds.reco_b, os.path.join(subdir, f"{self.current_epoch}_b.png"))
+        save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"), preds.pure_synthetic)
+        save_image_group(preds.real_experimental, preds.masked_experimental, preds.reco_experimental, os.path.join(subdir, f"{self.current_epoch}_experimental.png"), preds.pure_experimental))
 
 
     def training_step(self, batch, batch_idx):
