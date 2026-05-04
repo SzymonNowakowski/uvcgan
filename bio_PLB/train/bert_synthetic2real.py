@@ -24,7 +24,7 @@ def main():
 
     args_dict = OmegaConf.create({
         'outdir': 'outdir',
-        'batch_size': 196,
+        'batch_size': 128,
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
