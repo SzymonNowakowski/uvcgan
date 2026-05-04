@@ -24,38 +24,46 @@ def main():
 
     args_dict = OmegaConf.create({
         'outdir': 'outdir',
-        'batch_size': 24,
+        'batch_size': 128,
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
             'dataset_args': {
-                '_target_': 'bio_PLB.data.bio_synthetic_coordinator.BioSyntheticCoordinator',
-                'synth_adapter': {
-                    '_target_': 'bio_PLB.data.synthetic_dataset_adapter.SyntheticDatasetAdapter',
+                '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.CoordinatorDataset',
+                # these are the values of normalization used internally in the Coordinator as coded before the refactor
+                # TODO: now they need to be executed as externall transforms
+                # image_real = GlobalAndInstanceNorm(global_mean=0.2363, global_std=0.1224)(image_real)
+                # image_synth = GlobalAndInstanceNorm(global_mean=0.7367, global_std=0.1922)(image_synth)
+                'datasets': [
+                {
+                    '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.SyntheticDatasetAdapter',
                     'plb_instance': {
                         # Recursive instantiation of the external research dataset
-                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.dataset.PLBDataset',
+                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.synthetic_dataset.SyntheticDataset',
                         'data_dir': "data/synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/",
                         'return_tensors': False,
                         'transforms': [
                             {
-                                '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.dataset.RandomRotatedShiftedCrop',
+                                '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.transforms.RandomRotatedShiftedCrop',
                                 'size': '${target_px}',
                                 'interpolation': 'cubic',
+                                'allow_background_crop': False,
                                 #TODO: add mean/std
                             },
                         # no microscopic noise
                         ],
                     }
                 },
-                'real_dataset': {
-                    '_target_': 'bio_PLB.data.real_biological_dataset.RealBiologicalDataset',
+                {
+                    '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
                     'image_dir': "data/synthetic2real/real/crop_2957",
                     'metadata_csv_path': "data/synthetic2real/real/data_summary_2957.csv",
                     'target_nm': "${eval:'2 * ${target_px}'}",
-                    'target_px': '${target_px}'
+                    'target_px': '${target_px}',
+                    'return_tensors': True,
                     # TODO: add mean/std
-                },
+                }],
+                'main_dataset': 1,  # experimental dataset is main
                 'shared_transforms': [
                     {'_target_': 'torchvision.transforms.ToTensor'},
                 ]
@@ -63,27 +71,27 @@ def main():
             'transform_train': None,
             'transform_val': None,
         },
-        'epochs': 1500,
+        'epochs': 2000,
         'discriminator': None,
         'generator': {
             'model': {
-            #'model' : 'vit-unet',
-            '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
-            'image_shape': (1, '${target_px}', '${target_px}'),
-            'features'           : 384,
-            'n_heads'            : 6,
-            'n_blocks'           : 12,
-            'ffn_features'       : 1536,
-            'embed_features'     : 384,
-            'activ'              : 'gelu',
-            'norm'               : 'layer',
-            'unet_features_list' : [48, 96, 192, 384],
-            'unet_activ'         : 'leakyrelu',
-            'unet_norm'          : 'instance',
-            'unet_downsample'    : 'conv',
-            'unet_upsample'      : 'upsample-conv',
-            'rezero'             : True,
-            'activ_output'       : 'sigmoid',
+                # 'model' : 'vit-unet',
+                '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
+                'image_shape': (1, '${target_px}', '${target_px}'),
+                'features': 96,#128,384,
+                'n_heads': 4,#4,6
+                'n_blocks': 4,#4,12
+                'ffn_features': 384,#512,1536
+                'embed_features': 96,#128,,384,
+                'activ': 'gelu',
+                'norm': 'layer',
+                'unet_features_list': [12, 24, 48, 96],#[48, 96, 192, 384],
+                'unet_activ': 'leakyrelu',
+                'unet_norm': 'instance',
+                'unet_downsample': 'conv',
+                'unet_upsample': 'upsample-conv',
+                'rezero': True,
+                'activ_output': 'sigmoid',
             },
             'optimizer'  : {
             '_target_': 'torch.optim.AdamW',  # Define the class path here
@@ -109,14 +117,8 @@ def main():
         #'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
     #},
     'loss'             : {'_target_' : 'torch.nn.L1Loss'},
-#    'gradient_penalty' : None,
-#    'steps_per_epoch'  : "${eval:'32 * 1024 // ${batch_size}'}",
-# args
     'label': f'bert-vit-unet-12-160px',
     'logging_dir': 'logs',
-#    'log_level'  : 'DEBUG',
-#    'checkpoint' : 100,
-        #TODO eventually remove commented-out content
     })
 
 
