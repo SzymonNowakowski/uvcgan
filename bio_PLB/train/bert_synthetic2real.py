@@ -28,7 +28,7 @@ def main():
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
-            'dataset_args': {
+            'dataset': {
                 '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.CoordinatorDataset',
                 # these are the values of normalization used internally in the Coordinator as coded before the refactor
                 # TODO: now they need to be executed as externall transforms
@@ -125,8 +125,8 @@ def main():
 
 
     model = AutoencoderWrapper(args_dict)
-    dataset = instantiate(args_dict.data.dataset_args)
-    dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)
+    dataset = instantiate(args_dict.data.dataset)
+    dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=False, num_workers=args_dict.num_workers)
 
     loggers = [pl.loggers.TensorBoardLogger(save_dir='.', name=args_dict.logging_dir, default_hp_metric=False,
                                             version=args_dict.label + "-" + bio_PLB.tools.get_git_revision_short_hash())]
