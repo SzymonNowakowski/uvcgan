@@ -3,10 +3,10 @@ import os
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
 from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
+#from torchvision.transforms import ToTensor
 
 from bio_PLB.models.autoencoder_wrapper import AutoencoderWrapper
-from bio_PLB.data.synthetic_dataset_adapter import SyntheticDatasetAdapter
+#from bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset import SyntheticDatasetAdapter
 
 import pytorch_lightning as pl
 import torch
