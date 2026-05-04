@@ -37,7 +37,7 @@ def main():
                 'datasets': [
                 {
                     '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.SyntheticDatasetAdapter',
-                    'plb_instance': {
+                    'synthetic_dataset_instance': {
                         # Recursive instantiation of the external research dataset
                         '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.synthetic_dataset.SyntheticDataset',
                         'data_dir': "data/synthetic2real/synthetic_0.5_px_nm/dataset_01_20260223/",
