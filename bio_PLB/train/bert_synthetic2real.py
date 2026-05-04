@@ -64,9 +64,9 @@ def main():
                     # TODO: add mean/std
                 }],
                 'main_dataset': 1,  # experimental dataset is main
-                'shared_transforms': [
-                    {'_target_': 'torchvision.transforms.ToTensor'},
-                ]
+                #'shared_transforms': [
+                #    {'_target_': 'torchvision.transforms.ToTensor'},
+                #]
             },
             'transform_train': None,
             'transform_val': None,
