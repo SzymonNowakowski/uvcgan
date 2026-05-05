@@ -47,6 +47,7 @@ def main():
                             ],
                             'return_tensors': True,
                         },
+                'restrict_len': 3072,
             },
 
         },
