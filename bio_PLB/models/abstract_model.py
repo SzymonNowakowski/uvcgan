@@ -52,6 +52,8 @@ class AbstractModel(pl.LightningModule):
             self.log(f'{prefix}{k}_loss', v.item() if isinstance(v, torch.Tensor) else v)
 
         for k, v in metrics.items():
+            self.log(f'{prefix}{k}', v.item() if isinstance(v, torch.Tensor) else v)
+
 
     def training_step(self, batch, batch_idx):
         # "batch" is the output of the training data loader.
