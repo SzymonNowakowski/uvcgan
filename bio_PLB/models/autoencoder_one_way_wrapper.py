@@ -70,7 +70,7 @@ class AutoencoderOneWayWrapper(AbstractModel):
             big_image = torch.cat([grid1, grid2, grid3], dim=2)
             save_image(big_image, filename)
 
-        save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"), preds.pure_synthetic)
+        save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"))
 
     def training_step(self, batch, batch_idx):
         # "batch" is the output of the training data loader.
