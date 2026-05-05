@@ -24,18 +24,11 @@ def main():
 
     args_dict = OmegaConf.create({
         'outdir': 'outdir',
-        'batch_size': 32,
+        'batch_size': 128,
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
             'dataset': {
-                '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.CoordinatorDataset',
-                # these are the values of normalization used internally in the Coordinator as coded before the refactor
-                # TODO: now they need to be executed as externall transforms
-                # image_real = GlobalAndInstanceNorm(global_mean=0.2363, global_std=0.1224)(image_real)
-                # image_synth = GlobalAndInstanceNorm(global_mean=0.7367, global_std=0.1922)(image_synth)
-                'datasets': [
-                    {
                         '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.SyntheticDatasetAdapter',
                         'synthetic_dataset_instance': {
                             # Recursive instantiation of the external research dataset
@@ -52,48 +45,25 @@ def main():
                             # no microscopic noise
                             ],
                             'return_tensors': True,
-                        }
-                    },
-                    {
-                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
-                        'image_dir': "data/synthetic2real/real/crop_2957",
-                        'metadata_csv_path': "data/synthetic2real/real/data_summary_2957.csv",
-                        'target_nm': "${eval:'2 * ${target_px}'}",
-                        'target_px': '${target_px}',
-                        'return_tensors': True,
-                        # TODO: add mean/std
-                    },
-                    {
-                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
-                        'image_dir': "data/synthetic2real/backgrounds/tla_spireai",
-                        'metadata_csv_path': "data/synthetic2real/backgrounds/background_files.csv",
-                        'target_nm': "${eval:'2 * ${target_px}'}",
-                        'target_px': '${target_px}',
-                        'return_tensors': True,
-                        # TODO: add mean/std
-                    }
-                ],
-                'main_dataset': 1,  # experimental dataset is main
-                #'shared_transforms': [
-                #    {'_target_': 'torchvision.transforms.ToTensor'},
-                #]
+                        },
             },
+
         },
-        'epochs': 2000,
+        'epochs': 4000,
         'discriminator': None,
         'generator': {
             'model': {
                 # 'model' : 'vit-unet',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
-                'features': 128,#96,#128,384,
+                'features': 96,#128,384,
                 'n_heads': 4,#4,6
                 'n_blocks': 4,#4,12
-                'ffn_features': 512,#384,#512,1536
-                'embed_features': 128,#96,#128,,384,
+                'ffn_features': 384,#512,1536
+                'embed_features': 96,#128,,384,
                 'activ': 'gelu',
                 'norm': 'layer',
-                'unet_features_list': [48, 96, 192, 384],#[12, 24, 48, 96],#[48, 96, 192, 384],
+                'unet_features_list': [12, 24, 48, 96],#[48, 96, 192, 384],
                 'unet_activ': 'leakyrelu',
                 'unet_norm': 'instance',
                 'unet_downsample': 'conv',
@@ -131,7 +101,7 @@ def main():
 
 
 
-    model = AutoencoderWrapper(args_dict)
+    model = AutoencoderOneWayWrapper(args_dict)
     dataset = instantiate(args_dict.data.dataset)
     dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)
 

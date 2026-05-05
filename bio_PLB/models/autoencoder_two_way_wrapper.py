@@ -3,18 +3,21 @@ import os
 import pytorch_lightning as pl
 import torch
 from torchvision.utils import make_grid, save_image
+
+from bio_PLB.models.abstract_model import AbstractModel
 from uvcgan.base.weight_init import init_weights
 
 from hydra.utils import instantiate
 from lightning_fabric.utilities.data import AttributeDict
 
+
 from bio_PLB.tools import get_git_revision_short_hash
 
 
-class AutoencoderWrapper(pl.LightningModule):
+class AutoencoderTwoWayWrapper(AbstractModel):
     def __init__(self, args_dict):
-        super().__init__()
-        # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
+        super().__init__(args_dict)
+
         self.generator_synthetic = instantiate(args_dict.generator.model)
         self.generator_experimental = instantiate(args_dict.generator.model)
         init_weights(self.generator_synthetic, args_dict.generator.weight_init)
@@ -23,36 +26,6 @@ class AutoencoderWrapper(pl.LightningModule):
 
         self.masking = instantiate(args_dict.masking)
 
-        # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
-        self.save_hyperparameters()
-
-    def configure_optimizers(self):
-        # instantiate the optimizer, passing model parameters
-        optimizer = instantiate(
-            self.hparams.args_dict.generator.optimizer,
-            params=self.parameters()
-        )
-
-        # instantiate the scheduler, passing the optimizer
-        if self.hparams.args_dict.get("scheduler"):
-            scheduler = instantiate(
-                self.hparams.args_dict.scheduler,
-                optimizer=optimizer
-            )
-
-            return {
-                "optimizer": optimizer,
-                "lr_scheduler": {
-                    "scheduler": scheduler,
-                    "interval": "epoch",  # or "epoch"
-                },
-            }
-
-        return { "optimizer": optimizer }
-
-
-    def forward(self, x):
-        return #TODO
 
     def process_batch_supervised(self, batch):
         """get predictions, losses and mean errors (MAE)"""
@@ -90,14 +63,6 @@ class AutoencoderWrapper(pl.LightningModule):
 
         return preds, losses, metrics
 
-
-    def log_all(self, losses, metrics, prefix=''):
-        for k, v in losses.items():
-            self.log(f'{prefix}{k}_loss', v.item() if isinstance(v, torch.Tensor) else v)
-
-        for k, v in metrics.items():
-            self.log(f'{prefix}{k}', v.item() if isinstance(v, torch.Tensor) else v)
-
     def log_preds(self, preds, outdir):
         # make a new subdirectory in outdir - if not already - with get_git_revision_short_hash()
         subdir = os.path.join(outdir, get_git_revision_short_hash())
@@ -130,10 +95,3 @@ class AutoencoderWrapper(pl.LightningModule):
 
         return losses['final']
 
-    def validation_step(self, batch, batch_idx):
-        preds, losses, metrics = self.process_batch_supervised(batch)
-        self.log_all(losses, metrics, prefix='val_')
-
-    def test_step(self, batch, batch_idx):
-        preds, losses, metrics = self.process_batch_supervised(batch)
-        self.log_all(losses, metrics, prefix='test_')
