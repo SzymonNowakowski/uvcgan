@@ -5,7 +5,7 @@ from hydra.utils import instantiate
 from torch.utils.data import DataLoader
 #from torchvision.transforms import ToTensor
 
-from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderWrapper
+from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderTwoWayWrapper
 #from bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset import SyntheticDatasetAdapter
 
 import pytorch_lightning as pl
