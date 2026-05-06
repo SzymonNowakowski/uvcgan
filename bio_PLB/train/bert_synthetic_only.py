@@ -103,7 +103,7 @@ def main():
     })
 
     if args_dict.generator.model.get("link"):
-        model = AutoencoderOneWayWrapper.load_from_checkpoint(args_dict.generator.model.link)
+        model = AutoencoderOneWayWrapper.load_from_checkpoint(args_dict.generator.model.link, weights_only=False)
     else:
         model = AutoencoderOneWayWrapper(args_dict)
 
