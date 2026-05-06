@@ -56,6 +56,7 @@ def main():
         'generator': {
             'model': {
                 # 'model' : 'vit-unet',
+                'link': 'logs/bert-vit-unet-12-160px-88a1a22/checkpoints/best_loss_epoch=3966-train_final_loss=0.01777.ckpt',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
                 'features': 96,#128,384,
@@ -101,9 +102,11 @@ def main():
     'logging_dir': 'logs',
     })
 
+    if args_dict.generator.model.get("link"):
+        model = AutoencoderOneWayWrapper.load_from_checkpoint(args_dict.generator.model.link)
+    else:
+        model = AutoencoderOneWayWrapper(args_dict)
 
-
-    model = AutoencoderOneWayWrapper(args_dict)
     dataset = instantiate(args_dict.data.dataset)
     dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)
 
