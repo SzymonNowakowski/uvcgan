@@ -133,7 +133,7 @@ def main():
 
 
     if args_dict.generator.model.get("link_one_way"):
-        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link, weights_only=False, strict=False)
+        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link_one_way, weights_only=False, strict=False)
         # strict=False is very important because we are in fact reading the instance of AutoencoderOneWayWrapper and loading it into AutoencoderTwoWayWrapper
         model.transplant_experimental_head()
     elif args_dict.generator.model.get("link"):
