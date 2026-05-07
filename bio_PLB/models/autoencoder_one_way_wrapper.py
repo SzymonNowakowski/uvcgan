@@ -54,23 +54,25 @@ class AutoencoderOneWayWrapper(AbstractModel):
 
         return preds, losses, metrics
 
+    def save_image_group(self, img1, img2, img3, filename, img4=None):
+            grid1 = make_grid(img1, nrow=1)
+            grid2 = make_grid(img2, nrow=1)
+            grid3 = make_grid(img3, nrow=1)
+            if img4 is not None:
+                grid4 = make_grid(img4, nrow=1)
+                big_image = torch.cat([grid1, grid2, grid3, grid4], dim=2)
+            else:
+                big_image = torch.cat([grid1, grid2, grid3], dim=2)
+            save_image(big_image, filename)
+
     def log_preds(self, preds, outdir):
         # make a new subdirectory in outdir - if not already - with get_git_revision_short_hash()
         subdir = os.path.join(outdir, get_git_revision_short_hash())
         os.makedirs(subdir, exist_ok=True)
-        # for preds dictionary, save the batch of real_a, real_b, masked_a, masked_b, reco_a, reco_b images to files
         # the file self.current_epoch_xxx.png:
         #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        def save_image_group(img1, img2, img3, filename, img4=None):
-            grid1 = make_grid(img1, nrow=1)
-            grid2 = make_grid(img2, nrow=1)
-            grid3 = make_grid(img3, nrow=1)
-
-            big_image = torch.cat([grid1, grid2, grid3], dim=2)
-            save_image(big_image, filename)
-
-        save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"))
+        self.save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"))
 
     def training_step(self, batch, batch_idx):
         # "batch" is the output of the training data loader.

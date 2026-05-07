@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torch
 from torchvision.utils import make_grid, save_image
 
-from bio_PLB.models.abstract_model import AbstractModel
+from bio_PLB.models.autoencoder_one_way_wrapper import AutoencoderOneWayWrapper
 from uvcgan.base.weight_init import init_weights
 
 from hydra.utils import instantiate
@@ -14,17 +14,12 @@ from lightning_fabric.utilities.data import AttributeDict
 from bio_PLB.tools import get_git_revision_short_hash
 
 
-class AutoencoderTwoWayWrapper(AbstractModel):
+class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
     def __init__(self, args_dict):
         super().__init__(args_dict)
-
-        self.generator_synthetic = instantiate(args_dict.generator.model)
+        # it has an additional head:
         self.generator_experimental = instantiate(args_dict.generator.model)
-        init_weights(self.generator_synthetic, args_dict.generator.weight_init)
         init_weights(self.generator_experimental, args_dict.generator.weight_init)
-        self.loss = instantiate(args_dict.loss)
-
-        self.masking = instantiate(args_dict.masking)
 
 
     def process_batch_supervised(self, batch):
@@ -71,27 +66,19 @@ class AutoencoderTwoWayWrapper(AbstractModel):
         # the file self.current_epoch_xxx.png:
         #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        def save_image_group(img1, img2, img3, filename, img4=None):
-            grid1 = make_grid(img1, nrow=1)
-            grid2 = make_grid(img2, nrow=1)
-            grid3 = make_grid(img3, nrow=1)
-            if img4 is not None:
-                grid4 = make_grid(img4, nrow=1)
-                big_image = torch.cat([grid1, grid2, grid3, grid4], dim=2)
-            else:
-                big_image = torch.cat([grid1, grid2, grid3], dim=2)
-            save_image(big_image, filename)
+        self.save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"), preds.pure_synthetic)
+        self.save_image_group(preds.real_experimental, preds.masked_experimental, preds.reco_experimental, os.path.join(subdir, f"{self.current_epoch}_experimental.png"))
 
-        save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"), preds.pure_synthetic)
-        save_image_group(preds.real_experimental, preds.masked_experimental, preds.reco_experimental, os.path.join(subdir, f"{self.current_epoch}_experimental.png"))
+    def transplant_experimental_head(self):
+        """
+        Copies the weights from the trained synthetic generator to the
+        experimental generator. This ensures both heads start from the
+        same pre-trained state before fine-tuning on experimental data.
+        """
+        # Access the state dict of the synthetic generator
+        synthetic_state = self.generator_synthetic.state_dict()
 
-
-    def training_step(self, batch, batch_idx):
-        # "batch" is the output of the training data loader.
-        preds, losses, metrics = self.process_batch_supervised(batch)
-        self.log_all(losses, metrics, prefix='train_')
-        if (self.current_epoch == 0 or self.current_epoch % 100 == 99) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
-            self.log_preds(preds, self.hparams.args_dict.outdir)
-
-        return losses['final']
+        # Load the state dict into the experimental generator
+        # We use strict=True here because the architectures should be identical
+        self.generator_experimental.load_state_dict(synthetic_state)
 

@@ -24,7 +24,7 @@ def main():
 
     args_dict = OmegaConf.create({
         'outdir': 'outdir',
-        'batch_size': 32,
+        'batch_size': 128,
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
@@ -79,21 +79,22 @@ def main():
                 #]
             },
         },
-        'epochs': 2000,
+        'epochs': 4000,
         'discriminator': None,
         'generator': {
             'model': {
+                'link_one_way': 'logs/bert-vit-unet-12-160px-96e09ab/checkpoints/best_loss_epoch=3261-train_final_loss=0.01499.ckpt',
                 # 'model' : 'vit-unet',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
-                'features': 128,#96,#128,384,
+                'features': 96,#128,384,
                 'n_heads': 4,#4,6
                 'n_blocks': 4,#4,12
-                'ffn_features': 512,#384,#512,1536
-                'embed_features': 128,#96,#128,,384,
+                'ffn_features': 384,#512,1536
+                'embed_features': 96,#128,,384,
                 'activ': 'gelu',
                 'norm': 'layer',
-                'unet_features_list': [48, 96, 192, 384],#[12, 24, 48, 96],#[48, 96, 192, 384],
+                'unet_features_list': [12, 24, 48, 96],#[48, 96, 192, 384],
                 'unet_activ': 'leakyrelu',
                 'unet_norm': 'instance',
                 'unet_downsample': 'conv',
@@ -131,7 +132,15 @@ def main():
 
 
 
-    model = AutoencoderWrapper(args_dict)
+    if args_dict.generator.model.get("link_one_way"):
+        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link, weights_only=False, strict=False)
+        # strict=False is very important because we are in fact reading the instance of AutoencoderOneWayWrapper and loading it into AutoencoderTwoWayWrapper
+        model.transplant_experimental_head()
+    elif args_dict.generator.model.get("link"):
+        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link, weights_only=False)
+    else:
+        model = AutoencoderTwoWayWrapper(args_dict)
+
     dataset = instantiate(args_dict.data.dataset)
     dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)
 
