@@ -98,7 +98,7 @@ def main():
         #'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
     #},
     'loss'             : {'_target_' : 'torch.nn.L1Loss'},
-    'label': f'bert-vit-unet-12-160px',
+    'label': f'bert-one-way-160px',
     'logging_dir': 'logs',
     })
 

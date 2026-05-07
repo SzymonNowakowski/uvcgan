@@ -83,7 +83,7 @@ def main():
         'discriminator': None,
         'generator': {
             'model': {
-                'link_one_way': 'logs/bert-vit-unet-12-160px-96e09ab/checkpoints/best_loss_epoch=3261-train_final_loss=0.01499.ckpt',
+                'link_one_way': 'logs/bert-one-way-160px-96e09ab/checkpoints/best_loss_epoch=3261-train_final_loss=0.01499.ckpt',
                 # 'model' : 'vit-unet',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
@@ -126,7 +126,7 @@ def main():
         #'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
     #},
     'loss'             : {'_target_' : 'torch.nn.L1Loss'},
-    'label': f'bert-vit-unet-12-160px',
+    'label': f'bert-two-way-160px',
     'logging_dir': 'logs',
     })
 
