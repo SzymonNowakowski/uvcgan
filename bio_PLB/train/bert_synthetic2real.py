@@ -70,6 +70,7 @@ def main():
                         'target_nm': "${eval:'2 * ${target_px}'}",
                         'target_px': '${target_px}',
                         'return_tensors': True,
+                        'distribution': 'uniform'   # it makes sure that the backgrounds are sampled uniformly, with the default currently being "normal" which pays more attention to image center
                         # TODO: add mean/std
                     }
                 ],
