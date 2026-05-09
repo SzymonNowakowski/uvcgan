@@ -38,61 +38,44 @@ class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
         preds.noised_synthetic = preds.pure_synthetic * batch[2].to(self.device)
 
         """
-        TRAINING SCHEDULE: From Synthetic to Noisy Data (Curriculum Learning)
-        Total Duration: self.hparams.args_dict.epochs
-        Current epoch: self.current_epoch
-
-        | Phase            | Epochs      | Alpha (Interpolation) | P_noise (Mix)  | Objective                                |
-        |------------------|-------------|-----------------------|----------------|------------------------------------------|
-        | I: Adaptation    | 0 – 1000    | 0.0 -> 0.5 (Linear)   | 0% -> 50%      | Gentle introduction of noise/error.      |
-        | II: Transition   | 1000 – 2500 | 0.5 -> 1.0 (Linear)   | 50% -> 80%     | Core training on noisy distribution.     |
-        | III: Consolidation| 2500 – 3500 | 1.0 (Constant)        | 80% -> 100%    | Phasing out reliance on clean data.      |
-        | IV: Fine-tuning  | 3500 – 4000 | 1.0 (Constant)        | 100%           | Stabilization on target noisy distribution.|
-
-        Parameters:
-        - Alpha: Interpolation weight between clean and noisy samples.
-        - P_noise: Percentage of samples in a batch that are noisy.
+        TRAINING SCHEDULE: Stochastic Noise Interpolation
+        Total Duration: self.hparams.args_dict.epochs (e.g., 4000)
+        
+        | Phase             | Epochs      | Interpolation Strategy (Alpha sampling)      | Objective                                 |
+        |-------------------|-------------|---------------------------------------------|-------------------------------------------|
+        | I: Ramp-Up        | 0 – 1500    | alpha ~ Uniform(0, max_alpha)               | Introduce noise of varying intensities.   |
+        |                   |             | max_alpha: 0.0 -> 1.0                       |                                           |
+        | II: Ramp-Down     | 1500 – 3000 | alpha ~ Uniform(min_alpha, 1.0)             | Phase out clean/low-noise samples.        |
+        |                   |             | min_alpha: 0.0 -> 1.0                       |                                           |
+        | III: Pure Noisy   | 3000 – 4000 | alpha = 1.0 (Fixed)                         | Converge on the target noisy distribution.|
         """
 
-        # current training progress
         epoch = self.current_epoch
-
-        # phase 1: adaptation (0-1000)
-        if epoch < 1000:
-            alpha = (epoch / 1000) * 0.5
-            p_noise = (epoch / 1000) * 0.5
-        # phase 2: transition (1000-2500)
-        elif epoch < 2500:
-            # normalize progress between 0 and 1 for this phase
-            progress = (epoch - 1000) / 1500
-            alpha = 0.5 + (progress * 0.5)
-            p_noise = 0.5 + (progress * 0.3)
-        # phase 3: consolidation (2500-3500)
-        elif epoch < 3500:
-            progress = (epoch - 2500) / 1000
-            alpha = 1.0
-            p_noise = 0.8 + (progress * 0.2)
-        # phase 4: fine-tuning (3500+)
-        else:
-            alpha = 1.0
-            p_noise = 1.0
-
-        # create interpolation for all samples in the batch
-        # alpha controls the "intensity" of the noise
-        interpolated_samples = (1 - alpha) * preds.pure_synthetic + alpha * preds.noised_synthetic
-
-        # create a mask based on p_noise to decide which samples stay pure and which are noised
-        # batch[0].shape[0] is the batch size
         batch_size = preds.pure_synthetic.shape[0]
-        noise_mask = (torch.rand(batch_size, device=self.device) < p_noise).float()
 
-        # reshape mask for element-wise multiplication (e.g., [batch, 1, 1, 1] for images)
-        for _ in range(len(preds.pure_synthetic.shape) - 1):
-            noise_mask = noise_mask.unsqueeze(-1)
+        # --- 1. Calculate Phase-Specific Alpha Bounds ---
+        if epoch < 1500:
+            # Phase I: max_alpha grows 0 -> 1. Sampling Range: [0, max_alpha]
+            max_alpha = epoch / 1500
+            alpha_samples = torch.rand(batch_size, device=self.device) * max_alpha
 
-        # mix pure and interpolated samples based on the p_noise probability
-        preds.real_synthetic = (noise_mask * interpolated_samples) + ((1 - noise_mask) * preds.pure_synthetic)
+        elif epoch < 3000:
+            # Phase II: min_alpha grows 0 -> 1. Sampling Range: [min_alpha, 1.0]
+            progress = (epoch - 1500) / 1500
+            min_alpha = progress
+            alpha_samples = min_alpha + (torch.rand(batch_size, device=self.device) * (1.0 - min_alpha))
 
+        else:
+            # Phase III: Full noise for everyone
+            alpha_samples = torch.ones(batch_size, device=self.device)
+
+        # --- 2. Reshape alpha for broadcasting ---
+        # Reshapes from [batch] to [batch, 1, 1, 1] to match image dimensions
+        alpha_mask = alpha_samples.view(batch_size, *([1] * (len(preds.pure_synthetic.shape) - 1)))
+
+        # --- 3. Execute Stochastic Interpolation ---
+        # Every image in the batch now has a different noise intensity level
+        preds.real_synthetic = (1 - alpha_mask) * preds.pure_synthetic + alpha_mask * preds.noised_synthetic
 ############### REAL PREPARATION ###########################
 
         preds.real_experimental = batch[1].to(self.device)

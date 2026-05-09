@@ -78,7 +78,7 @@ class AutoencoderOneWayWrapper(AbstractModel):
         # "batch" is the output of the training data loader.
         preds, losses, metrics = self.process_batch_supervised(batch)
         self.log_all(losses, metrics, prefix='train_')
-        if (self.current_epoch == 0 or self.current_epoch % 100 == 99) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
+        if (self.current_epoch == 0 or self.current_epoch % 1000 == 999) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
             self.log_preds(preds, self.hparams.args_dict.outdir)
 
         return losses['final']
