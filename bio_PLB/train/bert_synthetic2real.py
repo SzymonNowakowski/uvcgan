@@ -84,7 +84,7 @@ def main():
         'discriminator': None,
         'generator': {
             'model': {
-                'link_one_way': 'logs/bert-one-way-160px-96e09ab/checkpoints/best_loss_epoch=3261-train_final_loss=0.01499.ckpt',
+                'link_one_way': 'logs/bert-one-way-160px-b54e1db/checkpoints/best_loss_epoch=3985-train_final_loss=0.02986.ckpt',
                 # 'model' : 'vit-unet',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
                 'image_shape': (1, '${target_px}', '${target_px}'),

@@ -54,12 +54,12 @@ class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
         batch_size = preds.pure_synthetic.shape[0]
 
         # --- 1. Calculate Phase-Specific Alpha Bounds ---
-        if epoch < 1500:
+        if epoch < 0:
             # Phase I: max_alpha grows 0 -> 1. Sampling Range: [0, max_alpha]
             max_alpha = epoch / 1500
             alpha_samples = torch.rand(batch_size, device=self.device) * max_alpha
 
-        elif epoch < 3000:
+        elif epoch < 0:
             # Phase II: min_alpha grows 0 -> 1. Sampling Range: [min_alpha, 1.0]
             progress = (epoch - 1500) / 1500
             min_alpha = progress
