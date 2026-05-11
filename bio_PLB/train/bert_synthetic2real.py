@@ -168,12 +168,12 @@ def main():
                 filename='best_total_loss_{epoch}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, mode="min", monitor="train_synthetic_loss", save_top_k=3,
-                filename='best_synthetic_loss_{epoch}-{train_synthetic_loss:.5f}-{train_final_loss:.5f}'
+                save_weights_only=True, mode="min", monitor="train_loss_synthetic_loss", save_top_k=3,
+                filename='best_synthetic_loss_{epoch}-{train_loss_synthetic_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, mode="min", monitor="train_experimental_loss", save_top_k=3,
-                filename='best_experimental_loss_{epoch}-{train_experimental_loss:.5f}-{train_final_loss:.5f}'
+                save_weights_only=True, mode="min", monitor="train_loss_experimental_loss", save_top_k=3,
+                filename='best_experimental_loss_{epoch}-{train_loss_experimental_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, every_n_epochs=5,
