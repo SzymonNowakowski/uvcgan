@@ -5,7 +5,8 @@ from hydra.utils import instantiate
 from torch.utils.data import DataLoader
 #from torchvision.transforms import ToTensor
 
-from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderTwoWayWrapper
+from bio_PLB.models.cyclegan_wrapper import CycleGANWrapper
+
 #from bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset import SyntheticDatasetAdapter
 
 import pytorch_lightning as pl
@@ -141,14 +142,7 @@ def main():
 
 
 
-    if args_dict.generator.model.get("link_one_way"):
-        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link_one_way, weights_only=False, strict=False)
-        # strict=False is very important because we are in fact reading the instance of AutoencoderOneWayWrapper and loading it into AutoencoderTwoWayWrapper
-        model.transplant_experimental_head()
-    elif args_dict.generator.model.get("link"):
-        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link, weights_only=False)
-    else:
-        model = AutoencoderTwoWayWrapper(args_dict)
+    model = CycleGANWrapper(args_dict)
 
     dataset = instantiate(args_dict.data.dataset)
     dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)

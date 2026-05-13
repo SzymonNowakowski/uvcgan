@@ -14,7 +14,7 @@ from lightning_fabric.utilities.data import AttributeDict
 from bio_PLB.tools import get_git_revision_short_hash
 
 
-class CycleganWrapper(AutoencoderTwoWayWrapper):
+class CycleGANWrapper(AutoencoderTwoWayWrapper):
     def __init__(self, args_dict):
         super().__init__(args_dict)
 
