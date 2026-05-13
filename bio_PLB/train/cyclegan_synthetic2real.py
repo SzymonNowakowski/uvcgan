@@ -24,6 +24,7 @@ def main():
     OmegaConf.register_new_resolver("eval", eval)
 
     args_dict = OmegaConf.create({
+        'epochs': 4000,
         'outdir': 'outdir',
         'batch_size': 128,
         'target_px': 160,
@@ -81,7 +82,6 @@ def main():
                 #]
             },
         },
-        'epochs': 4000,
         'generator': {
             'model': {
                 # 'model' : 'vit-unet',
@@ -107,7 +107,7 @@ def main():
                     'init_gain' : 0.02,
             }
         },
-        'discrimator': {
+        'discriminator': {
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
