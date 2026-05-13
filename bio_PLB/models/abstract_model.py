@@ -62,6 +62,24 @@ class AbstractModel(pl.LightningModule):
 
         return losses['final']
 
+
+
+    def save_image_group(self, imgs, filename):
+            grids = []
+            for img in imgs:
+                grid = make_grid(img, nrow=1)
+                grids.append(grid)
+            big_image = torch.cat(grids, dim=2)
+            save_image(big_image, filename)
+
+
+    def training_step(self, batch, batch_idx):
+        # "batch" is the output of the training data loader.
+        preds, losses, metrics = self.process_batch_supervised(batch)
+        self.log_all(losses, metrics, prefix='train_')
+
+        return losses['final']
+
     def validation_step(self, batch, batch_idx):
         preds, losses, metrics = self.process_batch_supervised(batch)
         self.log_all(losses, metrics, prefix='val_')

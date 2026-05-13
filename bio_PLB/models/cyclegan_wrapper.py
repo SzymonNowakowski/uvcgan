@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torch
 from torchvision.utils import make_grid, save_image
 
-from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderTwoWayWrapper
+from bio_PLB.models.abstract_model import AbstractModel
 from uvcgan.base.weight_init import init_weights
 
 from hydra.utils import instantiate
@@ -14,26 +14,27 @@ from lightning_fabric.utilities.data import AttributeDict
 from bio_PLB.tools import get_git_revision_short_hash
 
 
-class CycleGANWrapper(AutoencoderTwoWayWrapper):
+class CycleGANWrapper(AbstractModel):
     def __init__(self, args_dict):
         super().__init__(args_dict)
 
-        # it has additional two heads:
+        #networks
+        self.generator_synthetic2experimental = instantiate(args_dict.generator.model)
+        init_weights(self.generator_synthetic2experimental, args_dict.generator.weight_init)
+
+        self.generator_experimental2synthetic = instantiate(args_dict.generator.model)
+        init_weights(self.generator_experimental2synthetic, args_dict.generator.weight_init)
+
         self.discriminator_synthetic = instantiate(args_dict.discriminator.model)
         init_weights(self.discriminator_synthetic, args_dict.discriminator.weight_init)
 
         self.discriminator_experimental = instantiate(args_dict.discriminator.model)
         init_weights(self.discriminator_experimental, args_dict.discriminator.weight_init)
 
-
-
-        # and renaming heads for clarity:
-        self.generator_synthetic2experimental = self.generator_synthetic
-        self.generator_experimental2synthetic = self.generator_experimental
-        self.identity_loss = self.loss
-
-        # new things
+        #losses
+        self.identity_loss = instantiate(args_dict.identity_loss)
         self.discriminator_loss  = instantiate(args_dict.discriminator_loss)
+
         #lambdas
         self.lambda_preserve_identity = args_dict.lambda_preserve_identity
         self.lambda_cycle_identity = args_dict.lambda_cycle_identity
@@ -124,16 +125,12 @@ class CycleGANWrapper(AutoencoderTwoWayWrapper):
         self.save_image_group([preds.real_synthetic, preds.fake_experimental, preds.reconstruction_synthetic], os.path.join(subdir, f"{self.current_epoch}_synthetic.png"))
         self.save_image_group([preds.real_experimental, preds.fake_synthetic, preds.reconstruction_experimental], os.path.join(subdir, f"{self.current_epoch}_experimental.png"))
 
-    def transplant_experimental_head(self):
-        """
-        Copies the weights from the trained synthetic generator to the
-        experimental generator. This ensures both heads start from the
-        same pre-trained state before fine-tuning on experimental data.
-        """
-        # Access the state dict of the synthetic generator
-        synthetic_state = self.generator_synthetic.state_dict()
 
-        # Load the state dict into the experimental generator
-        # We use strict=True here because the architectures should be identical
-        self.generator_experimental.load_state_dict(synthetic_state)
+    def training_step(self, batch, batch_idx):
+        # "batch" is the output of the training data loader.
+        preds, losses, metrics = self.process_batch_supervised(batch)
+        self.log_all(losses, metrics, prefix='train_')
+        if (self.current_epoch == 0 or self.current_epoch % 1000 == 999) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
+            self.log_preds(preds, self.hparams.args_dict.outdir)
 
+        return losses['final']

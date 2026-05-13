@@ -19,7 +19,6 @@ class AutoencoderOneWayWrapper(AbstractModel):
         super().__init__(args_dict)
 
         self.generator_synthetic = instantiate(args_dict.generator.model)
-
         init_weights(self.generator_synthetic, args_dict.generator.weight_init)
 
         self.loss = instantiate(args_dict.loss)
@@ -49,14 +48,6 @@ class AutoencoderOneWayWrapper(AbstractModel):
         metrics = { }
 
         return preds, losses, metrics
-
-    def save_image_group(self, imgs, filename):
-            grids = []
-            for img in imgs:
-                grid = make_grid(img, nrow=1)
-                grids.append(grid)
-            big_image = torch.cat(grids, dim=2)
-            save_image(big_image, filename)
 
     def log_preds(self, preds, outdir):
         # make a new subdirectory in outdir - if not already - with get_git_revision_short_hash()

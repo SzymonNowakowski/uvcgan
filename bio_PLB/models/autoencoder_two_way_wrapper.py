@@ -17,6 +17,7 @@ from bio_PLB.tools import get_git_revision_short_hash
 class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
     def __init__(self, args_dict):
         super().__init__(args_dict)
+
         # it has an additional head:
         self.generator_experimental = instantiate(args_dict.generator.model)
         init_weights(self.generator_experimental, args_dict.generator.weight_init)

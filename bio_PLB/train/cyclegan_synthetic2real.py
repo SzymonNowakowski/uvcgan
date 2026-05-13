@@ -129,7 +129,7 @@ def main():
         #'T_mult'    : 1,
         #'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
     #},
-    'loss'             : {'_target_' : 'torch.nn.L1Loss'},
+    'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCELossWithLogits'},
     'lambda_preserve_identity': 10.0,
     'lambda_cycle_identity': 10.0,
