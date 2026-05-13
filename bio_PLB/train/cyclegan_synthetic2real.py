@@ -5,8 +5,7 @@ from hydra.utils import instantiate
 from torch.utils.data import DataLoader
 #from torchvision.transforms import ToTensor
 
-from bio_PLB.models.autoencoder_one_way_wrapper import AutoencoderOneWayWrapper
-
+from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderTwoWayWrapper
 #from bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset import SyntheticDatasetAdapter
 
 import pytorch_lightning as pl
@@ -30,6 +29,13 @@ def main():
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
             'dataset': {
+                '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.CoordinatorDataset',
+                # these are the values of normalization used internally in the Coordinator as coded before the refactor
+                # TODO: now they need to be executed as externall transforms
+                # image_real = GlobalAndInstanceNorm(global_mean=0.2363, global_std=0.1224)(image_real)
+                # image_synth = GlobalAndInstanceNorm(global_mean=0.7367, global_std=0.1922)(image_synth)
+                'datasets': [
+                    {
                         '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.coordinator_dataset.SyntheticDatasetAdapter',
                         'synthetic_dataset_instance': {
                             # Recursive instantiation of the external research dataset
@@ -46,16 +52,39 @@ def main():
                             # no microscopic noise
                             ],
                             'return_tensors': True,
-                        },
-                'restrict_len': 3072,
+                        }
+                    },
+                    {
+                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
+                        'image_dir': "data/synthetic2real/real/crop_2957",
+                        'metadata_csv_path': "data/synthetic2real/real/data_summary_2957.csv",
+                        'target_nm': "${eval:'2 * ${target_px}'}",
+                        'target_px': '${target_px}',
+                        'return_tensors': True,
+                        # TODO: add mean/std
+                    },
+                    {
+                        '_target_': 'bio_PLB.external.PLB.regression.src.plbregression.experimental_dataset.ExperimentalDataset',
+                        'image_dir': "data/synthetic2real/backgrounds/tla_spireai",
+                        'metadata_csv_path': "data/synthetic2real/backgrounds/background_files.csv",
+                        'target_nm': "${eval:'2 * ${target_px}'}",
+                        'target_px': '${target_px}',
+                        'return_tensors': True,
+                        'distribution': 'uniform'   # it makes sure that the backgrounds are sampled uniformly, with the default currently being "normal" which pays more attention to image center
+                        # TODO: add mean/std
+                    }
+                ],
+                'main_dataset': 1,  # experimental dataset is main
+                #'shared_transforms': [
+                #    {'_target_': 'torchvision.transforms.ToTensor'},
+                #]
             },
-
         },
         'epochs': 4000,
         'generator': {
             'model': {
+                'link_one_way': 'logs/bert-two-way-160px-b54e1db/checkpoints/best_loss_epoch=3985-train_final_loss=0.02986.ckpt',
                 # 'model' : 'vit-unet',
-                'link': 'logs/bert-vit-unet-12-160px-88a1a22/checkpoints/best_loss_epoch=3966-train_final_loss=0.01777.ckpt',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
                 'features': 96,#128,384,
@@ -74,15 +103,20 @@ def main():
                 'activ_output': 'sigmoid',
             },
             'weight_init' : {
-                'name'      : 'normal',
-                'init_gain' : 0.02,
+                    'name'      : 'normal',
+                    'init_gain' : 0.02,
             }
         },
-    'masking' : {
-            '_target_' : 'uvcgan.torch.image_masking.ImagePatchRandomMasking',
-            'patch_size' : (16, 16),
-            'fraction'   : 0.4,
-    },
+        'discrimator': {
+            'model': {
+                '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
+                'image_shape': (1, '${target_px}', '${target_px}'),
+            },
+            'weight_init': {
+                'name': 'normal',
+                'init_gain': 0.02,
+            }
+        },
     'optimizer': {
         '_target_': 'torch.optim.AdamW',  # Define the class path here
         'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
@@ -96,14 +130,25 @@ def main():
         #'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
     #},
     'loss'             : {'_target_' : 'torch.nn.L1Loss'},
-    'label': f'bert-one-way-160px',
+    'discriminator_loss': {'_target_': 'torch.nn.BCELossWithLogits'},
+    'lambda_preserve_identity': 10.0,
+    'lambda_cycle_identity': 10.0,
+    'lambda_generator': 1.0,
+    'lambda_discriminator': 1.0,
+    'label': f'bert-two-way-160px',
     'logging_dir': 'logs',
     })
 
-    if args_dict.generator.model.get("link"):
-        model = AutoencoderOneWayWrapper.load_from_checkpoint(args_dict.generator.model.link, weights_only=False)
+
+
+    if args_dict.generator.model.get("link_one_way"):
+        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link_one_way, weights_only=False, strict=False)
+        # strict=False is very important because we are in fact reading the instance of AutoencoderOneWayWrapper and loading it into AutoencoderTwoWayWrapper
+        model.transplant_experimental_head()
+    elif args_dict.generator.model.get("link"):
+        model = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.model.link, weights_only=False)
     else:
-        model = AutoencoderOneWayWrapper(args_dict)
+        model = AutoencoderTwoWayWrapper(args_dict)
 
     dataset = instantiate(args_dict.data.dataset)
     dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)
@@ -128,7 +173,15 @@ def main():
         callbacks=[
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, mode="min", monitor="train_final_loss", save_top_k=3,
-                filename='best_loss_{epoch}-{train_final_loss:.5f}'
+                filename='best_total_loss_{epoch}-{train_final_loss:.5f}'
+            ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
+            pl.callbacks.ModelCheckpoint(
+                save_weights_only=True, mode="min", monitor="train_loss_synthetic_loss", save_top_k=3,
+                filename='best_synthetic_loss_{epoch}-{train_loss_synthetic_loss:.5f}-{train_final_loss:.5f}'
+            ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
+            pl.callbacks.ModelCheckpoint(
+                save_weights_only=True, mode="min", monitor="train_loss_experimental_loss", save_top_k=3,
+                filename='best_experimental_loss_{epoch}-{train_loss_experimental_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, every_n_epochs=5,

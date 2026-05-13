@@ -21,7 +21,7 @@ class AbstractModel(pl.LightningModule):
     def configure_optimizers(self):
         # instantiate the optimizer, passing model parameters
         optimizer = instantiate(
-            self.hparams.args_dict.generator.optimizer,
+            self.hparams.args_dict.optimizer,
             params=self.parameters()
         )
 

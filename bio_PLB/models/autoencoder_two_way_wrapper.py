@@ -28,14 +28,10 @@ class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
 
         preds = AttributeDict()
 
-        #image_types = ['real_a', 'reco_a', 'real_b', 'reco_b', 'masked_a', 'masked_b']
-        #for image_type in image_types:
-        #    preds[image_type] = None
-
 ######## SYNTHETIC PREPRARATION WITH CURRICULUM LEARNING ########
 
-        preds.pure_synthetic = batch[0].to(self.device)
-        preds.noised_synthetic = preds.pure_synthetic * batch[2].to(self.device)
+        preds.pure_synthetic = batch[0]
+        preds.noised_synthetic = preds.pure_synthetic * batch[2]
 
         """
         TRAINING SCHEDULE: Stochastic Noise Interpolation
@@ -78,16 +74,16 @@ class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
         preds.real_synthetic = (1 - alpha_mask) * preds.pure_synthetic + alpha_mask * preds.noised_synthetic
 ############### REAL PREPARATION ###########################
 
-        preds.real_experimental = batch[1].to(self.device)
+        preds.real_experimental = batch[1]
 
         preds.masked_synthetic = self.masking(preds.real_synthetic)
         preds.masked_experimental = self.masking(preds.real_experimental)
 
-        preds.reco_synthetic = self.generator_synthetic(preds.masked_synthetic)
-        preds.reco_experimental = self.generator_experimental(preds.masked_experimental)
+        preds.reconstruction_synthetic = self.generator_synthetic(preds.masked_synthetic)
+        preds.reconstruction_experimental = self.generator_experimental(preds.masked_experimental)
 
-        loss_synthetic = self.loss(preds.real_synthetic, preds.reco_synthetic)
-        loss_experimental = self.loss(preds.real_experimental, preds.reco_experimental)
+        loss_synthetic = self.loss(preds.real_synthetic, preds.reconstruction_synthetic)
+        loss_experimental = self.loss(preds.real_experimental, preds.reconstruction_experimental)
 
 
         losses  = { 'loss_synthetic': loss_synthetic,
@@ -107,8 +103,8 @@ class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
         # the file self.current_epoch_xxx.png:
         #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        self.save_image_group(preds.real_synthetic, preds.masked_synthetic, preds.reco_synthetic, os.path.join(subdir, f"{self.current_epoch}_synthetic.png"), preds.pure_synthetic)
-        self.save_image_group(preds.real_experimental, preds.masked_experimental, preds.reco_experimental, os.path.join(subdir, f"{self.current_epoch}_experimental.png"))
+        self.save_image_group([preds.real_synthetic, preds.masked_synthetic, preds.reconstruction_synthetic, preds.pure_synthetic], os.path.join(subdir, f"{self.current_epoch}_synthetic.png"))
+        self.save_image_group([preds.real_experimental, preds.masked_experimental, preds.reconstruction_experimental], os.path.join(subdir, f"{self.current_epoch}_experimental.png"))
 
     def transplant_experimental_head(self):
         """

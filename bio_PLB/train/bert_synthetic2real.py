@@ -81,7 +81,6 @@ def main():
             },
         },
         'epochs': 4000,
-        'discriminator': None,
         'generator': {
             'model': {
                 'link_one_way': 'logs/bert-two-way-160px-b54e1db/checkpoints/best_loss_epoch=3985-train_final_loss=0.02986.ckpt',
@@ -103,22 +102,21 @@ def main():
                 'rezero': True,
                 'activ_output': 'sigmoid',
             },
-            'optimizer'  : {
-            '_target_': 'torch.optim.AdamW',  # Define the class path here
-            'lr'      : "${eval:'${batch_size} * 2e-3 / 512'}",
-            'betas'   : (0.9, 0.99),
-            'weight_decay' : 0.05,
+            'weight_init' : {
+                    'name'      : 'normal',
+                    'init_gain' : 0.02,
+            }
         },
-        'weight_init' : {
-            'name'      : 'normal',
-            'init_gain' : 0.02,
-        }
-    },
-    'model'      : 'autoencoder',
     'masking' : {
             '_target_' : 'uvcgan.torch.image_masking.ImagePatchRandomMasking',
             'patch_size' : (16, 16),
             'fraction'   : 0.4,
+    },
+    'optimizer': {
+        '_target_': 'torch.optim.AdamW',  # Define the class path here
+        'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
+        'betas': (0.9, 0.99),
+        'weight_decay': 0.05,
     },
     'scheduler' : None,#{
         #'_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',
