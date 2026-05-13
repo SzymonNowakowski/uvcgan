@@ -146,8 +146,8 @@ def main():
 
 
     model = CycleGANWrapper(args_dict)
-    donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.synthetic_generator_link)
-    donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.experimental_generator_link)
+    donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.synthetic_generator_link, weights_only=False)
+    donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.experimental_generator_link, weights_only=False)
 
     model.transplant_generator_heads(donor_synthetic, donor_experimental)
 
