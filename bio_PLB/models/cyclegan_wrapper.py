@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torch
 from torchvision.utils import make_grid, save_image
 
-from bio_PLB.models.autoencoder_one_way_wrapper import AutoencoderTwoWayWrapper
+from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderTwoWayWrapper
 from uvcgan.base.weight_init import init_weights
 
 from hydra.utils import instantiate
