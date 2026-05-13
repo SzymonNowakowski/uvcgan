@@ -42,7 +42,7 @@ class CycleGANWrapper(AbstractModel):
         self.lambda_discriminator = args_dict.lambda_discriminator
 
 
-    def discriminator_loss(self, discriminator_model, image, torch_init_like_fun):
+    def compute_discriminator_loss(self, discriminator_model, image, torch_init_like_fun):
         discriminator_prediction = discriminator_model(image)
         loss = self.discriminator_loss(discriminator_prediction, torch_init_like_fun(discriminator_prediction))
         return loss
@@ -76,16 +76,16 @@ class CycleGANWrapper(AbstractModel):
         loss_cycle_identity_synthetic = self.identity_loss(preds.real_synthetic, preds.reconstruction_synthetic)
         loss_cycle_identity_experimental = self.identity_loss(preds.real_experimental, preds.reconstruction_experimental)
 
-        loss_generator_synthetic = self.discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic, torch.ones_like)
-        loss_generator_experimental = self.discriminator_loss(self.discriminator_experimental, preds.fake_experimental, torch.ones_like)
+        loss_generator_synthetic = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic, torch.ones_like)
+        loss_generator_experimental = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental, torch.ones_like)
 
         self.set_requires_grad(self.discriminator_experimental, True)
         self.set_requires_grad(self.discriminator_synthetic, True)
 
-        loss_discriminator_synthetic_fake = self.discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), torch.zeros_like)
-        loss_discriminator_synthetic_real = self.discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, torch.ones_like)
-        loss_discriminator_experimental_fake = self.discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), torch.zeros_like)
-        loss_discriminator_experimental_real = self.discriminator_loss(self.discriminator_experimental, preds.real_experimental, torch.ones_like)
+        loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), torch.zeros_like)
+        loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, torch.ones_like)
+        loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), torch.zeros_like)
+        loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, torch.ones_like)
 
 
         losses  = { 'preserve_identity_synthetic': loss_preserve_identity_synthetic,
