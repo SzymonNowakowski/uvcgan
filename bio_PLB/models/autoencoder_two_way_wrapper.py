@@ -104,6 +104,7 @@ class AutoencoderTwoWayWrapper(AutoencoderOneWayWrapper):
         # the file self.current_epoch_xxx.png:
         #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
+    def save_images(self, preds, subdir):
         self.save_image_group([preds.real_synthetic, preds.masked_synthetic, preds.reconstruction_synthetic, preds.pure_synthetic], os.path.join(subdir, f"{self.current_epoch}_synthetic.png"))
         self.save_image_group([preds.real_experimental, preds.masked_experimental, preds.reconstruction_experimental], os.path.join(subdir, f"{self.current_epoch}_experimental.png"))
 

@@ -5,6 +5,7 @@ import torch
 from torchvision.utils import make_grid, save_image
 
 from bio_PLB.models.abstract_model import AbstractModel
+from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderTwoWayWrapper
 from uvcgan.base.weight_init import init_weights
 
 from hydra.utils import instantiate
@@ -114,23 +115,15 @@ class CycleGANWrapper(AbstractModel):
 
         return preds, losses, metrics
 
-    def log_preds(self, preds, outdir):
-        # make a new subdirectory in outdir - if not already - with get_git_revision_short_hash()
-        subdir = os.path.join(outdir, get_git_revision_short_hash())
-        os.makedirs(subdir, exist_ok=True)
-        # for preds dictionary, save the batch of real_a, real_b, masked_a, masked_b, reco_a, reco_b images to files
-        # the file self.current_epoch_xxx.png:
-        #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
-
+    def save_images(self, preds, subdir):
         self.save_image_group([preds.real_synthetic, preds.fake_experimental, preds.reconstruction_synthetic], os.path.join(subdir, f"{self.current_epoch}_synthetic.png"))
         self.save_image_group([preds.real_experimental, preds.fake_synthetic, preds.reconstruction_experimental], os.path.join(subdir, f"{self.current_epoch}_experimental.png"))
 
 
-    def training_step(self, batch, batch_idx):
-        # "batch" is the output of the training data loader.
-        preds, losses, metrics = self.process_batch_supervised(batch)
-        self.log_all(losses, metrics, prefix='train_')
-        if (self.current_epoch == 0 or self.current_epoch % 1000 == 999) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
-            self.log_preds(preds, self.hparams.args_dict.outdir)
+    def transplant_generator_heads(self, donor_synthetic: AutoencoderTwoWayWrapper, donor_experimental: AutoencoderTwoWayWrapper):
 
-        return losses['final']
+        state = donor_synthetic.generator_synthetic.state_dict()
+        self.generator_synthetic2experimental.load_state_dict(state)
+
+        state = donor_experimental.generator_experimental.state_dict()
+        self.generator_experimental2synthetic.load_state_dict(state)
