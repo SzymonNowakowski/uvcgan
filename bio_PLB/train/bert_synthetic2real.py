@@ -23,6 +23,7 @@ def main():
     OmegaConf.register_new_resolver("eval", eval)
 
     args_dict = OmegaConf.create({
+        'epochs': 4000,
         'outdir': 'outdir',
         'batch_size': 128,
         'target_px': 160,
@@ -80,7 +81,6 @@ def main():
                 #]
             },
         },
-        'epochs': 4000,
         'generator': {
             'model': {
                 'link_one_way': 'logs/bert-two-way-160px-b54e1db/checkpoints/best_loss_epoch=3985-train_final_loss=0.02986.ckpt',
