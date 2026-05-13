@@ -38,7 +38,7 @@ class CycleGANWrapper(AbstractModel):
         #lambdas
         self.lambda_preserve_identity = args_dict.lambda_preserve_identity
         self.lambda_cycle_identity = args_dict.lambda_cycle_identity
-        self.lambda_generator = args_dict.lambda_reconstruction
+        self.lambda_generator = args_dict.lambda_generator
         self.lambda_discriminator = args_dict.lambda_discriminator
 
 
