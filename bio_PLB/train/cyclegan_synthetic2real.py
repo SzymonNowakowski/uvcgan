@@ -84,7 +84,6 @@ def main():
         'epochs': 4000,
         'generator': {
             'model': {
-                'link_one_way': 'logs/bert-two-way-160px-b54e1db/checkpoints/best_loss_epoch=3985-train_final_loss=0.02986.ckpt',
                 # 'model' : 'vit-unet',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
@@ -136,7 +135,7 @@ def main():
     'lambda_cycle_identity': 10.0,
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
-    'label': f'bert-two-way-160px',
+    'label': f'cyclegan',
     'logging_dir': 'logs',
     })
 
