@@ -85,7 +85,7 @@ def main():
             },
         },
         'synthetic_generator_link': 'logs/bert-two-way-160px-5c87673/checkpoints/best_synthetic_loss_epoch=3359-train_loss_synthetic_loss=0.01361-train_final_loss=0.02877.ckpt',
-        'experimental_generaotr_link': 'logs/bert-two-way-160px-5c87673/checkpoints/best_experimental_loss_epoch=2100-train_loss_experimental_loss=0.01296-train_final_loss=0.02874.ckpt',
+        'experimental_generator_link': 'logs/bert-two-way-160px-5c87673/checkpoints/best_experimental_loss_epoch=2100-train_loss_experimental_loss=0.01296-train_final_loss=0.02874.ckpt',
         'generator': {
             'model': {
                 # 'model' : 'vit-unet',
