@@ -130,10 +130,10 @@ def main():
         'betas': (0.9, 0.99),
         'weight_decay': 0.05,
     },
-    'warmup_steps': 18200,  #100 epochs, 182 batches each
+    'warmup_epochs': 100,
     'scheduler': {
         '_target_': 'torch.optim.lr_scheduler.LambdaLR',
-        'lr_lambda': "${eval:'lambda step: min(1.0, step / ${warmup_steps})'}"
+        'lr_lambda': "${eval:'lambda epoch: min(1.0, (epoch+1) / ${warmup_epochs})'}"
     },
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
