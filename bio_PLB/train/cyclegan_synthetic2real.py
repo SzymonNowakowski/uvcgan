@@ -130,7 +130,7 @@ def main():
         'betas': (0.9, 0.99),
         'weight_decay': 0.05,
     },
-    'warmup_steps': 9100,  #100 epochs, 91 batches each
+    'warmup_steps': 18200,  #100 epochs, 182 batches each
     'scheduler': {
         '_target_': 'torch.optim.lr_scheduler.LambdaLR',
         'lr_lambda': "${eval:'lambda step: min(1.0, step / ${warmup_steps})'}"
