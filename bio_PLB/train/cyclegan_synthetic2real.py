@@ -115,6 +115,9 @@ def main():
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
+                'ndf': 16,                # the number of filters in the last conv layer
+                'n_layers': 2,            # the number of conv layers in the discriminator
+                'max_mult': 4,            # normalization layer
             },
             'weight_init': {
                 'name': 'normal',
@@ -127,12 +130,11 @@ def main():
         'betas': (0.9, 0.99),
         'weight_decay': 0.05,
     },
-    'scheduler' : None,#{
-        #'_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',
-        #'T_0'       : 500,
-        #'T_mult'    : 1,
-        #'eta_min': "${eval:'${batch_size} * 5e-8 / 512'}",
-    #},
+    'warmup_steps': 9100,  #100 epochs, 91 batches each
+    'scheduler': {
+        '_target_': 'torch.optim.lr_scheduler.LambdaLR',
+        'lr_lambda': "lambda step: min(1.0, step / ${warmup_steps})"
+    },
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
     'lambda_preserve_identity': 10.0,
@@ -175,14 +177,6 @@ def main():
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, mode="min", monitor="train_final_loss", save_top_k=3,
                 filename='best_total_loss_{epoch}-{train_final_loss:.5f}'
-            ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
-            pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, mode="min", monitor="train_loss_synthetic_loss", save_top_k=3,
-                filename='best_synthetic_loss_{epoch}-{train_loss_synthetic_loss:.5f}-{train_final_loss:.5f}'
-            ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
-            pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, mode="min", monitor="train_loss_experimental_loss", save_top_k=3,
-                filename='best_experimental_loss_{epoch}-{train_loss_experimental_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, every_n_epochs=5,

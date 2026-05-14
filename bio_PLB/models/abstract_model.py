@@ -84,16 +84,17 @@ class AbstractModel(pl.LightningModule):
         return losses['final']
 
     def save_images(self, preds, subdir):
+        # the file self.current_epoch_xxx.png:
+        #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
+
         None
 
     def log_preds(self, preds, outdir):
         # make a new subdirectory in outdir - if not already - with get_git_revision_short_hash()
         subdir = os.path.join(outdir, get_git_revision_short_hash())
         os.makedirs(subdir, exist_ok=True)
-        # the file self.current_epoch_xxx.png:
-        #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        self.save_images(preds, outdir)
+        self.save_images(preds, subdir)
 
 
 
