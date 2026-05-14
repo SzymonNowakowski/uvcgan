@@ -133,7 +133,7 @@ def main():
     'warmup_steps': 9100,  #100 epochs, 91 batches each
     'scheduler': {
         '_target_': 'torch.optim.lr_scheduler.LambdaLR',
-        'lr_lambda': "lambda step: min(1.0, step / ${warmup_steps})"
+        'lr_lambda': "${eval:'lambda step: min(1.0, step / ${warmup_steps})'}"
     },
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
