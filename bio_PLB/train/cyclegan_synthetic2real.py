@@ -28,7 +28,7 @@ def main():
     args_dict = OmegaConf.create({
         'epochs': 4000,
         'outdir': 'outdir',
-        'batch_size': 16,
+        'batch_size': 4,
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
@@ -115,9 +115,9 @@ def main():
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
-                'ndf': 16,                # the number of filters in the last conv layer
-                'n_layers': 2,            # the number of conv layers in the discriminator
-                'max_mult': 4,            # normalization layer
+                #'ndf': 16,                # the number of filters in the last conv layer
+                #'n_layers': 2,            # the number of conv layers in the discriminator
+                #'max_mult': 4,            # normalization layer
             },
             'weight_init': {
                 'name': 'normal',
