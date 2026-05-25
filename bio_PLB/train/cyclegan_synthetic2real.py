@@ -152,6 +152,7 @@ def main():
     donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.experimental_generator_link, weights_only=False)
 
     model.transplant_generator_heads(donor_synthetic, donor_experimental)
+    model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
 
     dataset = instantiate(args_dict.data.dataset)
     dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)
