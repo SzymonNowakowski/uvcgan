@@ -117,9 +117,9 @@ def main():
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
                 'image_shape': (2, '${target_px}', '${target_px}'),   # chanel is 2 because of the concatenation of image and prediscriminator BERT features
-                #'ndf': 16,                # the number of filters in the last conv layer
-                #'n_layers': 2,            # the number of conv layers in the discriminator
-                #'max_mult': 4,            # normalization layer
+                'ndf': 16,                # the number of filters in the last conv layer
+                'n_layers': 2,            # the number of conv layers in the discriminator
+                'max_mult': 4,            # normalization layer
             },
             'weight_init': {
                 'name': 'normal',
