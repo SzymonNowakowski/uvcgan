@@ -85,9 +85,9 @@ def main():
                 #]
             },
         },
-        'synthetic_generator_link': 'logs/bert-two-way-160px-5c87673/checkpoints/best_synthetic_loss_epoch=3359-train_loss_synthetic_loss=0.01361-train_final_loss=0.02877.ckpt',
-        'experimental_generator_link': 'logs/bert-two-way-160px-5c87673/checkpoints/best_experimental_loss_epoch=2100-train_loss_experimental_loss=0.01296-train_final_loss=0.02874.ckpt',
         'generator': {
+            'synthetic_generator_link': 'logs/bert-two-way-160px-5c87673/checkpoints/best_synthetic_loss_epoch=3359-train_loss_synthetic_loss=0.01361-train_final_loss=0.02877.ckpt',
+            'experimental_generator_link': 'logs/bert-two-way-160px-5c87673/checkpoints/best_experimental_loss_epoch=2100-train_loss_experimental_loss=0.01296-train_final_loss=0.02874.ckpt',
             'model': {
                 # 'model' : 'vit-unet',
                 '_target_': 'uvcgan.models.generator.vitunet.ViTUNetGenerator',
@@ -149,11 +149,11 @@ def main():
 
 
 
-    model = CycleGANPrediscriminatorWrapper.load_from_checkpoint(args_dict.synthetic_generator_link, weights_only=False, strict=False)
+    model = CycleGANPrediscriminatorWrapper.load_from_checkpoint(args_dict.discriminator.discriminator_link, weights_only=False, strict=False)
         # strict=False is very important because we are in fact reading the instance of CycleGANWrapper and loading it into CycleGANPrediscriminatorWrapper
 
-    donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.synthetic_generator_link, weights_only=False)
-    donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.experimental_generator_link, weights_only=False)
+    donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.synthetic_generator_link, weights_only=False)
+    donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.experimental_generator_link, weights_only=False)
     model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
 
     dataset = instantiate(args_dict.data.dataset)
