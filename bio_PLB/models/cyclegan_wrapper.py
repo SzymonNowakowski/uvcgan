@@ -56,7 +56,7 @@ class CycleGANWrapper(AbstractModel):
     def compute_discriminator_loss(self, prediscriminator_model, discriminator_model, image, torch_init_like_fun):
         def concatenate_channelwise(imageA, imageB):
             # image: (B, C, H, W), features: (B, C, H, W) -> result: (B, 2*C, H, W)
-            return torch.cat((imageA, imageB), dim=-2)
+            return torch.cat((imageA, imageB), dim=-3)
 
 
         discriminator_prediction = discriminator_model(concatenate_channelwise(image, prediscriminator_model(image)))
