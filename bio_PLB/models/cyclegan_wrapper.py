@@ -19,49 +19,32 @@ class CycleGANWrapper(AbstractModel):
     def __init__(self, args_dict):
         super().__init__(args_dict)
 
-        # networks:
-            # generators
+        #networks
         self.generator_synthetic2experimental = instantiate(args_dict.generator.model)
         init_weights(self.generator_synthetic2experimental, args_dict.generator.weight_init)
 
         self.generator_experimental2synthetic = instantiate(args_dict.generator.model)
         init_weights(self.generator_experimental2synthetic, args_dict.generator.weight_init)
 
-            # prediscriminators
-        self.prediscriminator_synthetic = instantiate(args_dict.generator.model)
-        init_weights(self.prediscriminator_synthetic, args_dict.generator.weight_init)
-
-        self.prediscriminator_experimental = instantiate(args_dict.generator.model)
-        init_weights(self.prediscriminator_experimental, args_dict.generator.weight_init)
-
-            # discriminators proper
         self.discriminator_synthetic = instantiate(args_dict.discriminator.model)
         init_weights(self.discriminator_synthetic, args_dict.discriminator.weight_init)
 
         self.discriminator_experimental = instantiate(args_dict.discriminator.model)
         init_weights(self.discriminator_experimental, args_dict.discriminator.weight_init)
 
-        # losses
+        #losses
         self.identity_loss = instantiate(args_dict.identity_loss)
         self.discriminator_loss  = instantiate(args_dict.discriminator_loss)
 
-        # lambdas
+        #lambdas
         self.lambda_preserve_identity = args_dict.lambda_preserve_identity
         self.lambda_cycle_identity = args_dict.lambda_cycle_identity
         self.lambda_generator = args_dict.lambda_generator
         self.lambda_discriminator = args_dict.lambda_discriminator
 
 
-
-    def compute_discriminator_loss(self, prediscriminator_model, discriminator_model, image, torch_init_like_fun):
-        def concatenate_channelwise(imageA, imageB):
-            # image: (B, C, H, W), features: (B, C, H, W) -> result: (B, 2*C, H, W)
-            return torch.cat((imageA, imageB), dim=-3)
-
-
-        discriminator_prediction = discriminator_model(concatenate_channelwise(image, prediscriminator_model(image)))
-
-
+    def compute_discriminator_loss(self, discriminator_model, image, torch_init_like_fun):
+        discriminator_prediction = discriminator_model(image)
         loss = self.discriminator_loss(discriminator_prediction, torch_init_like_fun(discriminator_prediction))
         return loss
 
@@ -73,8 +56,6 @@ class CycleGANWrapper(AbstractModel):
 
         preds = AttributeDict()
 
-        self.set_requires_grad(self.prediscriminator_experimental, False)
-        self.set_requires_grad(self.prediscriminator_synthetic, False)
         self.set_requires_grad(self.discriminator_experimental, False)
         self.set_requires_grad(self.discriminator_synthetic, False)
 
@@ -96,18 +77,16 @@ class CycleGANWrapper(AbstractModel):
         loss_cycle_identity_synthetic = self.identity_loss(preds.real_synthetic, preds.reconstruction_synthetic)
         loss_cycle_identity_experimental = self.identity_loss(preds.real_experimental, preds.reconstruction_experimental)
 
-        loss_generator_synthetic = self.compute_discriminator_loss(self.prediscriminator_synthetic, self.discriminator_synthetic, preds.fake_synthetic, torch.ones_like)
-        loss_generator_experimental = self.compute_discriminator_loss(self.prediscriminator_experimental, self.discriminator_experimental, preds.fake_experimental, torch.ones_like)
+        loss_generator_synthetic = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic, torch.ones_like)
+        loss_generator_experimental = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental, torch.ones_like)
 
-        self.set_requires_grad(self.prediscriminator_experimental, True)
-        self.set_requires_grad(self.prediscriminator_synthetic, True)
         self.set_requires_grad(self.discriminator_experimental, True)
         self.set_requires_grad(self.discriminator_synthetic, True)
 
-        loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.prediscriminator_synthetic, self.discriminator_synthetic, preds.fake_synthetic.detach(), torch.zeros_like)
-        loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.prediscriminator_synthetic, self.discriminator_synthetic, preds.real_synthetic, torch.ones_like)
-        loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.prediscriminator_experimental, self.discriminator_experimental, preds.fake_experimental.detach(), torch.zeros_like)
-        loss_discriminator_experimental_real = self.compute_discriminator_loss(self.prediscriminator_experimental, self.discriminator_experimental, preds.real_experimental, torch.ones_like)
+        loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), torch.zeros_like)
+        loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, torch.ones_like)
+        loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), torch.zeros_like)
+        loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, torch.ones_like)
 
 
         losses  = { 'preserve_identity_synthetic': loss_preserve_identity_synthetic,
@@ -148,11 +127,3 @@ class CycleGANWrapper(AbstractModel):
 
         state = donor_experimental.generator_experimental.state_dict()
         self.generator_experimental2synthetic.load_state_dict(state)
-
-    def transplant_prediscriminator_heads(self, donor_synthetic: AutoencoderTwoWayWrapper, donor_experimental: AutoencoderTwoWayWrapper):
-
-        state = donor_synthetic.generator_synthetic.state_dict()
-        self.prediscriminator_synthetic.load_state_dict(state)
-
-        state = donor_experimental.generator_experimental.state_dict()
-        self.prediscriminator_experimental.load_state_dict(state)

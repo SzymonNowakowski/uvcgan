@@ -5,6 +5,7 @@ from hydra.utils import instantiate
 from torch.utils.data import DataLoader
 
 from bio_PLB.models.autoencoder_two_way_wrapper import AutoencoderTwoWayWrapper
+from bio_PLB.models.cyclegan_prediscriminator_wrapper import CycleGANPrediscriminatorWrapper
 #from torchvision.transforms import ToTensor
 
 from bio_PLB.models.cyclegan_wrapper import CycleGANWrapper
@@ -112,6 +113,7 @@ def main():
             }
         },
         'discriminator': {
+            'discriminator_link': 'logs/cyclegan-ce19c7c/checkpoints/best_total_loss_epoch=338-train_final_loss=4.49893.ckpt',
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
                 'image_shape': (2, '${target_px}', '${target_px}'),   # chanel is 2 because of the concatenation of image and prediscriminator BERT features
@@ -147,11 +149,11 @@ def main():
 
 
 
-    model = CycleGANWrapper(args_dict)
+    model = CycleGANPrediscriminatorWrapper.load_from_checkpoint(args_dict.synthetic_generator_link, weights_only=False, strict=False)
+        # strict=False is very important because we are in fact reading the instance of CycleGANWrapper and loading it into CycleGANPrediscriminatorWrapper
+
     donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.synthetic_generator_link, weights_only=False)
     donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.experimental_generator_link, weights_only=False)
-
-    model.transplant_generator_heads(donor_synthetic, donor_experimental)
     model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
 
     dataset = instantiate(args_dict.data.dataset)
