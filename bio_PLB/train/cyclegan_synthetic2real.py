@@ -155,7 +155,7 @@ def main():
     donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.synthetic_generator_link, weights_only=False)
     donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.experimental_generator_link, weights_only=False)
     model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
-    model.instantiate_discriminator()  # we need to reinstaintiate the discriminator because of different structure
+    model.reinstaintiate_discriminator()  # we need to reinstaintiate the discriminator because of different structure
 
 
     dataset = instantiate(args_dict.data.dataset)
