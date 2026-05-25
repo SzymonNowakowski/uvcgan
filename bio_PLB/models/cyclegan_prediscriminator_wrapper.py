@@ -15,27 +15,23 @@ from lightning_fabric.utilities.data import AttributeDict
 
 from bio_PLB.tools import get_git_revision_short_hash
 
-
-def instantiate_discriminator(self):
-    # networks:
-        # prediscriminators
-    self.prediscriminator_synthetic = instantiate(self.hparams.args_dict.generator.model)
-    init_weights(self.prediscriminator_synthetic, self.hparams.args_dict.generator.weight_init)
-
-    self.prediscriminator_experimental = instantiate(self.hparams.args_dict.generator.model)
-    init_weights(self.prediscriminator_experimental, self.hparams.args_dict.generator.weight_init)
-
-        # linking:
-    self.discriminator_synthetic.prediscriminator = self.prediscriminator_synthetic
-    self.discriminator_experimental.prediscriminator = self.prediscriminator_experimental
-
-
 class CycleGANPrediscriminatorWrapper(CycleGANWrapper):
     def __init__(self, args_dict):
         super().__init__(args_dict)
         self.instantiate_discriminator()
 
+    def instantiate_discriminator(self):
+        # networks:
+        # prediscriminators
+        self.prediscriminator_synthetic = instantiate(self.hparams.args_dict.generator.model)
+        init_weights(self.prediscriminator_synthetic, self.hparams.args_dict.generator.weight_init)
 
+        self.prediscriminator_experimental = instantiate(self.hparams.args_dict.generator.model)
+        init_weights(self.prediscriminator_experimental, self.hparams.args_dict.generator.weight_init)
+
+        # linking:
+        self.discriminator_synthetic.prediscriminator = self.prediscriminator_synthetic
+        self.discriminator_experimental.prediscriminator = self.prediscriminator_experimental
 
     def compute_discriminator_loss(self, discriminator_model, image, torch_init_like_fun):
         def concatenate_channelwise(imageA, imageB):
