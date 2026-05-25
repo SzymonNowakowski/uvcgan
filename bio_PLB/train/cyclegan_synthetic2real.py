@@ -140,9 +140,9 @@ def main():
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
     'lambda_preserve_identity': 10.0,
-    'lambda_cycle_identity': 20.0,
+    'lambda_cycle_identity': 100.0,
     'lambda_generator': .1,
-    'lambda_discriminator': .1,
+    'lambda_discriminator': .01,
     'label': f'cyclegan',
     'logging_dir': 'logs',
     })
