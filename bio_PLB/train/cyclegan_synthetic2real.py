@@ -114,7 +114,7 @@ def main():
         'discriminator': {
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
-                'image_shape': (1, '${target_px}', '${target_px}'),
+                'image_shape': (2, '${target_px}', '${target_px}'),   # chanel is 2 because of the concatenation of image and prediscriminator BERT features
                 #'ndf': 16,                # the number of filters in the last conv layer
                 #'n_layers': 2,            # the number of conv layers in the discriminator
                 #'max_mult': 4,            # normalization layer
@@ -130,11 +130,11 @@ def main():
         'betas': (0.9, 0.99),
         'weight_decay': 0.05,
     },
-    'warmup_epochs': 100,
-    'scheduler': {
-        '_target_': 'torch.optim.lr_scheduler.LambdaLR',
-        'lr_lambda': "${eval:'lambda epoch: min(1.0, (epoch+1) / ${warmup_epochs})'}"
-    },
+    #'warmup_epochs': 100,
+    'scheduler': None, #{
+        #'_target_': 'torch.optim.lr_scheduler.LambdaLR',
+        #'lr_lambda': "${eval:'lambda epoch: min(1.0, (epoch+1) / ${warmup_epochs})'}"
+    #},
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
     'lambda_preserve_identity': 10.0,
