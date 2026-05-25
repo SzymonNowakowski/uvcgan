@@ -55,15 +55,6 @@ class AbstractModel(pl.LightningModule):
             self.log(f'{prefix}{k}', v.item() if isinstance(v, torch.Tensor) else v)
 
 
-    def training_step(self, batch, batch_idx):
-        # "batch" is the output of the training data loader.
-        preds, losses, metrics = self.process_batch_supervised(batch)
-        self.log_all(losses, metrics, prefix='train_')
-
-        return losses['final']
-
-
-
     def save_image_group(self, imgs, filename):
             grids = []
             for img in imgs:
