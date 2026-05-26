@@ -69,6 +69,9 @@ class CycleGANWrapper(AbstractModel):
         mask = torch.rand(tensor.size())
         return (mask >= self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3
 
+    def fixed_ones(self, tensor):
+        return torch.ones_like(tensor)
+
     def process_batch_supervised(self, batch):
 
         preds = AttributeDict()
@@ -94,8 +97,8 @@ class CycleGANWrapper(AbstractModel):
         loss_cycle_identity_synthetic = self.identity_loss(preds.real_synthetic, preds.reconstruction_synthetic)
         loss_cycle_identity_experimental = self.identity_loss(preds.real_experimental, preds.reconstruction_experimental)
 
-        loss_generator_synthetic = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic, torch.ones_like)
-        loss_generator_experimental = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental, torch.ones_like)
+        loss_generator_synthetic = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic, fixed_ones)
+        loss_generator_experimental = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental, fixed_ones)
 
         self.set_requires_grad(self.discriminator_experimental, True)
         self.set_requires_grad(self.discriminator_synthetic, True)
