@@ -42,15 +42,32 @@ class CycleGANWrapper(AbstractModel):
         self.lambda_generator = args_dict.lambda_generator
         self.lambda_discriminator = args_dict.lambda_discriminator
 
+        self.probability_flip_labels_discriminator = args_dict.probability_flip_labels_discriminator
 
-    def compute_discriminator_loss(self, discriminator_model, image, torch_init_like_fun):
+    def compute_discriminator_loss(self, discriminator_model, image, compute_labels_fun):
         discriminator_prediction = discriminator_model(image)
-        loss = self.discriminator_loss(discriminator_prediction, torch_init_like_fun(discriminator_prediction))
+        loss = self.discriminator_loss(discriminator_prediction, compute_labels_fun(self, discriminator_prediction))
         return loss
 
     def set_requires_grad(self, discriminator_model, requires_grad):
         for param in discriminator_model.parameters():
             param.requires_grad = requires_grad
+
+    def close_to_zeros_with_flip(self, tensor):
+        # produce a tensor shaped like input tensor
+        # with values close to 0 (0-0.3) randomly drawn from uniform distribution
+        # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
+        # between 0.7 and 1.0 (close to 1)
+        mask = torch.rand(tensor.size())
+        return (mask < self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask >= self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3
+
+    def close_to_ones_with_flip(self, tensor):
+        # produce a tensor shaped like input tensor
+        # with values close to 1 (0.7-1.0) randomly drawn from uniform distribution
+        # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
+        # between 0.0 and 0.3 (close to 0)
+        mask = torch.rand(tensor.size())
+        return (mask >= self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3
 
     def process_batch_supervised(self, batch):
 
@@ -83,10 +100,14 @@ class CycleGANWrapper(AbstractModel):
         self.set_requires_grad(self.discriminator_experimental, True)
         self.set_requires_grad(self.discriminator_synthetic, True)
 
-        loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), torch.zeros_like)
-        loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, torch.ones_like)
-        loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), torch.zeros_like)
-        loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, torch.ones_like)
+        # with flip means that with a certain probability, the labels for real and fake are flipped, which is a common technique to stabilize training of GANs
+        # but flipped (like in pair-wise) or rather this or that label gets flipped?
+        # answer:
+
+        loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), close_to_zeros_with_flip)
+        loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, close_to_ones_with_flip)
+        loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), close_to_zeros_with_flip)
+        loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, close_to_ones_with_flip)
 
 
         losses  = { 'preserve_identity_synthetic': loss_preserve_identity_synthetic,

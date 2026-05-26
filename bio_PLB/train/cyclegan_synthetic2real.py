@@ -139,6 +139,7 @@ def main():
     'lambda_cycle_identity': 10.0,
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
+    'probability_flip_labels_discriminator': 0.05,   # with this probability, the labels for real/fake in discriminator loss are flipped, which is a common technique to stabilize training
     'label': f'cyclegan',
     'logging_dir': 'logs',
     })
@@ -177,12 +178,8 @@ def main():
                 filename='best_total_loss_{epoch}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, mode="min", monitor="train_loss_synthetic_loss", save_top_k=3,
-                filename='best_synthetic_loss_{epoch}-{train_loss_synthetic_loss:.5f}-{train_final_loss:.5f}'
-            ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
-            pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, mode="min", monitor="train_loss_experimental_loss", save_top_k=3,
-                filename='best_experimental_loss_{epoch}-{train_loss_experimental_loss:.5f}-{train_final_loss:.5f}'
+                save_weights_only=True, mode="min", monitor="train_cycle_identity_synthetic_loss", save_top_k=3,
+                filename='best_train_cycle_identity_synthetic_loss_{epoch}-{train_cycle_identity_synthetic_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, every_n_epochs=5,
