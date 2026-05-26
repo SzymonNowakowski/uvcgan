@@ -59,7 +59,7 @@ class CycleGANWrapper(AbstractModel):
         # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
         # between 0.7 and 1.0 (close to 1)
         mask = torch.rand(tensor.size())
-        return (mask < self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask >= self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3
+        return ((mask < self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask >= self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3).to(tensor.device())
 
     def close_to_ones_with_flip(self, tensor):
         # produce a tensor shaped like input tensor
@@ -67,7 +67,7 @@ class CycleGANWrapper(AbstractModel):
         # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
         # between 0.0 and 0.3 (close to 0)
         mask = torch.rand(tensor.size())
-        return (mask >= self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3
+        return ((mask >= self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3).to(tensor.device())
 
     def process_batch_supervised(self, batch):
 
