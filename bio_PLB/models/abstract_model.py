@@ -14,6 +14,7 @@ from bio_PLB.tools import get_git_revision_short_hash
 class AbstractModel(pl.LightningModule):
     def __init__(self, args_dict):
         super().__init__()
+        self.save_images_every = args_dict.save_images_every
 
         # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
         self.save_hyperparameters()
@@ -78,7 +79,7 @@ class AbstractModel(pl.LightningModule):
         # "batch" is the output of the training data loader.
         preds, losses, metrics = self.process_batch_supervised(batch)
         self.log_all(losses, metrics, prefix='train_')
-        if (self.current_epoch == 0 or self.current_epoch % 1000 == 999) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
+        if (self.current_epoch == 0 or self.current_epoch % self.save_images_every == self.save_images_every-1) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
             self.log_preds(preds, self.hparams.args_dict.outdir)
 
         return losses['final']
