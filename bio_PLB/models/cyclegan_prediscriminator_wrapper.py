@@ -45,11 +45,10 @@ class CycleGANPrediscriminatorWrapper(CycleGANWrapper):
         loss = self.discriminator_loss(discriminator_prediction, torch_init_like_fun(discriminator_prediction))
         return loss
 
-    def process_batch_supervised(self, batch):
-        if self.current_epoch == 10:
-            self.lambda_discriminator = 0   #the discriminator will get strong enough
+#    def process_batch_supervised(self, batch):
+#        preds, losses, metrics = super().process_batch_supervised(batch)
 
-        super().process_batch_supervised()
+#        return preds, losses, metrics
 
     def transplant_prediscriminator_heads(self, donor_synthetic: AutoencoderTwoWayWrapper, donor_experimental: AutoencoderTwoWayWrapper):
 
