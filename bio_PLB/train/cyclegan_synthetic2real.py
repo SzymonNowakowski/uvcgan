@@ -131,7 +131,7 @@ def main():
         },
         {
             '_target_': 'torch.optim.SGD',  # Dyscriminator optimization
-            'lr': "${eval:'${batch_size} * 2e-3 / 512*8'}",
+            'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
             'momentum': 0.9,
         }
     ],

@@ -97,8 +97,7 @@ class CycleGANWrapper(AbstractModel):
     # manual handling of optimization
     def training_step(self, batch, batch_idx):
         # "batch" is the output of the training data loader.
-        preds, losses, metrics = self.process_batch_supervised(batch)
-        self.log_all(losses, metrics, prefix='train_')
+        super().training_step(batch, batch_idx)  # this will call process_batch_supervised and log the losses and metrics
 
         opt_g, opt_d = self.optimizers()
 
