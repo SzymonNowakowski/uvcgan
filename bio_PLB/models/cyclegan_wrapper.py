@@ -1,6 +1,8 @@
 import os
 
 import pytorch_lightning as pl
+from omegaconf import ListConfig
+
 import torch
 from torchvision.utils import make_grid, save_image
 
@@ -61,9 +63,13 @@ class CycleGANWrapper(AbstractModel):
         optimizers = []
         for i, params in enumerate(param_groups):
             # i-th config or (if not a list) the same config for all groups
-            config = opt_configs[i] if isinstance(opt_configs, (list, getattr(self.hparams.args_dict, 'ListConfig',
-                                                                              list))) else opt_configs
-            print(config)
+            if isinstance(opt_configs, ListConfig):
+                config = opt_configs[i]
+            elif isinstance(opt_configs, list):
+                config = opt_configs[i]
+            else:
+                config = opt_configs
+
             opt = instantiate(config, params=params)
             optimizers.append(opt)
 
@@ -72,9 +78,13 @@ class CycleGANWrapper(AbstractModel):
             sched_configs = self.hparams.args_dict.scheduler
             schedulers = []
             for i, opt in enumerate(optimizers):
-                config = sched_configs[i] if isinstance(sched_configs, (list,
-                                                                        getattr(self.hparams.args_dict, 'ListConfig',
-                                                                                list))) else sched_configs
+                if isinstance(sched_configs, ListConfig):
+                    config = sched_configs[i]
+                elif isinstance(sched_configs, list):
+                    config = sched_configs[i]
+                else:
+                    config = sched_configs
+
                 sch = instantiate(config, optimizer=opt)
                 schedulers.append({
                     "scheduler": sch,
