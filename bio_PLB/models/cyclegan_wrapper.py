@@ -63,7 +63,7 @@ class CycleGANWrapper(AbstractModel):
             # i-th config or (if not a list) the same config for all groups
             config = opt_configs[i] if isinstance(opt_configs, (list, getattr(self.hparams.args_dict, 'ListConfig',
                                                                               list))) else opt_configs
-
+            print(config)
             opt = instantiate(config, params=params)
             optimizers.append(opt)
 
