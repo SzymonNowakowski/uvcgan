@@ -97,14 +97,14 @@ class CycleGANWrapper(AbstractModel):
     # manual handling of optimization
     def training_step(self, batch, batch_idx):
         # "batch" is the output of the training data loader.
-        super().training_step(batch, batch_idx)  # this will call process_batch_supervised and log the losses and metrics
+        loss_final = super().training_step(batch, batch_idx)  # this will call process_batch_supervised and log the losses and metrics
 
         opt_g, opt_d = self.optimizers()
 
         opt_g.zero_grad()
         opt_d.zero_grad()
 
-        self.manual_backward(losses['final'])
+        self.manual_backward(loss_final)
 
         self.clip_gradients(opt_g, gradient_clip_val=0.5, gradient_clip_algorithm="norm")
         self.clip_gradients(opt_d, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
@@ -117,7 +117,7 @@ class CycleGANWrapper(AbstractModel):
             if config.interval == 'step':
                 config.scheduler.step()
 
-        return losses['final']
+        return loss_final
 
     # manual handling of "epoch" based schedulers
     def on_train_epoch_end(self):
