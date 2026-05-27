@@ -122,12 +122,19 @@ def main():
                 'init_gain': 0.02,
             }
         },
-    'optimizer': {
-        '_target_': 'torch.optim.AdamW',  # Define the class path here
+    'optimizer': [
+        {
+        '_target_': 'torch.optim.AdamW',  # Generator optimization
         'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
         'betas': (0.9, 0.99),
         'weight_decay': 0.05,
-    },
+        },
+        {
+            '_target_': 'torch.optim.SGD',  # Dyscriminator optimization
+            'lr': "${eval:'${batch_size} * 2e-3 / 512*8'}",
+            'momentum': 0.9,
+        }
+    ],
     'scheduler' : None,#{
         #'_target_' : 'torch.optim.lr_scheduler.CosineAnnealingWarmRestarts',
         #'T_0'       : 500,

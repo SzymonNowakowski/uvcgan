@@ -44,6 +44,78 @@ class CycleGANWrapper(AbstractModel):
 
         self.probability_flip_labels_discriminator = args_dict.probability_flip_labels_discriminator
 
+        self.automatic_optimization = False
+
+    def configure_optimizers(self):
+        from hydra.utils import instantiate
+
+        gen_params = list(self.generator_synthetic2experimental.parameters()) + \
+                     list(self.generator_experimental2synthetic.parameters())
+
+        disc_params = list(self.discriminator_synthetic.parameters()) + \
+                      list(self.discriminator_experimental.parameters())
+
+        param_groups = [gen_params, disc_params]
+
+        opt_configs = self.hparams.args_dict.optimizer
+        optimizers = []
+        for i, params in enumerate(param_groups):
+            # i-th config or (if not a list) the same config for all groups
+            config = opt_configs[i] if isinstance(opt_configs, (list, getattr(self.hparams.args_dict, 'ListConfig',
+                                                                              list))) else opt_configs
+
+            opt = instantiate(config, params=params)
+            optimizers.append(opt)
+
+        # the same for schedulers
+        if self.hparams.args_dict.get("scheduler"):
+            sched_configs = self.hparams.args_dict.scheduler
+            schedulers = []
+            for i, opt in enumerate(optimizers):
+                config = sched_configs[i] if isinstance(sched_configs, (list,
+                                                                        getattr(self.hparams.args_dict, 'ListConfig',
+                                                                                list))) else sched_configs
+                sch = instantiate(config, optimizer=opt)
+                schedulers.append({
+                    "scheduler": sch,
+                    "interval": "epoch"
+                })
+            return optimizers, schedulers
+
+        return optimizers
+
+    # manual handling of optimization
+    def training_step(self, batch, batch_idx):
+        # "batch" is the output of the training data loader.
+        preds, losses, metrics = self.process_batch_supervised(batch)
+        self.log_all(losses, metrics, prefix='train_')
+
+        opt_g, opt_d = self.optimizers()
+
+        opt_g.zero_grad()
+        opt_d.zero_grad()
+
+        self.manual_backward(losses['final'])
+
+        self.clip_gradients(opt_g, gradient_clip_val=0.5, gradient_clip_algorithm="norm")
+        self.clip_gradients(opt_d, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
+
+        opt_g.step()
+        opt_d.step()
+
+        # manual handling of "step" based schedulers
+        for config in self.trainer.lr_scheduler_configs:
+            if config.interval == 'step':
+                config.scheduler.step()
+
+        return losses['final']
+
+    # manual handling of "epoch" based schedulers
+    def on_train_epoch_end(self):
+        for config in self.trainer.lr_scheduler_configs:
+            if config.interval == 'epoch':
+                config.scheduler.step()
+
     def compute_discriminator_loss(self, discriminator_model, image, compute_labels_fun):
         discriminator_prediction = discriminator_model(image)
         loss = self.discriminator_loss(discriminator_prediction, compute_labels_fun(discriminator_prediction))
@@ -99,10 +171,6 @@ class CycleGANWrapper(AbstractModel):
 
         self.set_requires_grad(self.discriminator_experimental, True)
         self.set_requires_grad(self.discriminator_synthetic, True)
-
-        # with flip means that with a certain probability, the labels for real and fake are flipped, which is a common technique to stabilize training of GANs
-        # but flipped (like in pair-wise) or rather this or that label gets flipped?
-        # answer:
 
         loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), self.close_to_zeros_with_flip)
         loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, self.close_to_ones_with_flip)

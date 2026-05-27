@@ -94,7 +94,7 @@ class AbstractModel(pl.LightningModule):
         # the file self.current_epoch_xxx.png:
         #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        self.save_images(preds, outdir)
+        self.save_images(preds, subdir)
 
 
 
