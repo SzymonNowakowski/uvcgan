@@ -106,7 +106,7 @@ class CycleGANWrapper(AbstractModel):
 
         self.manual_backward(loss_final)
 
-        self.clip_gradients(opt_g, gradient_clip_val=0.5, gradient_clip_algorithm="norm")
+        self.clip_gradients(opt_g, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
         self.clip_gradients(opt_d, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
 
         opt_g.step()
