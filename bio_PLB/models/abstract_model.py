@@ -14,10 +14,12 @@ from bio_PLB.tools import get_git_revision_short_hash
 class AbstractModel(pl.LightningModule):
     def __init__(self, args_dict):
         super().__init__()
-        self.save_images_every = args_dict.get("save_images_every", 1000)
-
-        # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
+                # Exports the hyperparameters to a YAML file, and create "self.hparams" namespace
         self.save_hyperparameters()
+
+    @property
+    def save_images_every(self):
+        return self.hparams.args_dict.get("save_images_every", 1000)
 
     def configure_optimizers(self):
         # instantiate the optimizer, passing model parameters
