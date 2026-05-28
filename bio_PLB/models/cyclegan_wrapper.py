@@ -48,14 +48,21 @@ class CycleGANWrapper(AbstractModel):
 
         self.automatic_optimization = False
 
+
+    def generator_params(self):
+        return list(self.generator_synthetic2experimental.parameters()) + \
+                     list(self.generator_experimental2synthetic.parameters())
+
+    def discriminator_params(self):
+        return list(self.discriminator_synthetic.parameters()) + \
+                      list(self.discriminator_experimental.parameters())
+
     def configure_optimizers(self):
         from hydra.utils import instantiate
 
-        gen_params = list(self.generator_synthetic2experimental.parameters()) + \
-                     list(self.generator_experimental2synthetic.parameters())
+        gen_params = self.generator_params()
 
-        disc_params = list(self.discriminator_synthetic.parameters()) + \
-                      list(self.discriminator_experimental.parameters())
+        disc_params = self.discriminator_params()
 
         param_groups = [gen_params, disc_params]
 
