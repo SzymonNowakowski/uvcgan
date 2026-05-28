@@ -29,6 +29,7 @@ def main():
     args_dict = OmegaConf.create({
         'epochs': 4000,
         'outdir': 'outdir',
+        'save_images_every': 100,
         'batch_size': 16,
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
@@ -126,12 +127,19 @@ def main():
                 'init_gain': 0.02,
             }
         },
-    'optimizer': {
-        '_target_': 'torch.optim.AdamW',  # Define the class path here
+    'optimizer': [
+        {
+        '_target_': 'torch.optim.AdamW',  # Generator optimization
         'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
         'betas': (0.9, 0.99),
         'weight_decay': 0.05,
-    },
+        },
+        {
+            '_target_': 'torch.optim.SGD',  # Dyscriminator optimization
+            'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
+            'momentum': 0.9,
+        }
+    ],
     #'warmup_epochs': 100,
     'scheduler': None, #{
         #'_target_': 'torch.optim.lr_scheduler.LambdaLR',
@@ -141,8 +149,9 @@ def main():
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
     'lambda_preserve_identity': 10.0,
     'lambda_cycle_identity': 10.0,
-    'lambda_generator': 1,
-    'lambda_discriminator': 1,
+    'lambda_generator': 1.0,
+    'lambda_discriminator': 1.0,
+    'probability_flip_labels_discriminator': 0.05,   # with this probability, the labels for real/fake in discriminator loss are flipped, which is a common technique to stabilize training
     'label': f'cyclegan',
     'logging_dir': 'logs',
     })
@@ -183,6 +192,10 @@ def main():
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, mode="min", monitor="train_final_loss", save_top_k=3,
                 filename='best_total_loss_{epoch}-{train_final_loss:.5f}'
+            ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
+            pl.callbacks.ModelCheckpoint(
+                save_weights_only=True, mode="min", monitor="train_cycle_identity_synthetic_loss", save_top_k=3,
+                filename='best_train_cycle_identity_synthetic_loss_{epoch}-{train_cycle_identity_synthetic_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
                 save_weights_only=True, every_n_epochs=5,
