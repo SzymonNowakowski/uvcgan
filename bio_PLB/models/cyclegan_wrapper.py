@@ -44,7 +44,7 @@ class CycleGANWrapper(AbstractModel):
         self.lambda_generator = args_dict.lambda_generator
         self.lambda_discriminator = args_dict.lambda_discriminator
 
-        self.probability_flip_labels_discriminator = args_dict.probability_flip_labels_discriminator
+        self.probability_flip_labels_discriminator = args_dict.get("probability_flip_labels_discriminator", 0.5)
 
         self.automatic_optimization = False
 
