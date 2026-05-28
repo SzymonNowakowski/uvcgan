@@ -38,16 +38,28 @@ class CycleGANWrapper(AbstractModel):
         self.identity_loss = instantiate(args_dict.identity_loss)
         self.discriminator_loss  = instantiate(args_dict.discriminator_loss)
 
-        #lambdas
-        self.lambda_preserve_identity = args_dict.lambda_preserve_identity
-        self.lambda_cycle_identity = args_dict.lambda_cycle_identity
-        self.lambda_generator = args_dict.lambda_generator
-        self.lambda_discriminator = args_dict.lambda_discriminator
-
-        self.probability_flip_labels_discriminator = args_dict.get("probability_flip_labels_discriminator", 0.5)
-
         self.automatic_optimization = False
 
+    #instead of self.lambdas_blablabla define a set of properties that will serve as polymorphic methods and enable dynamic linking in case of loading a network from a checkpoint
+    @property
+    def lambda_preserve_identity(self):
+        return self.hparams.args_dict.lambda_preserve_identity
+
+    @property
+    def lambda_cycle_identity(self):
+        return self.hparams.args_dict.lambda_cycle_identity
+
+    @property
+    def lambda_generator(self):
+        return self.hparams.args_dict.lambda_generator
+
+    @property
+    def lambda_discriminator(self):
+        return self.hparams.args_dict.lambda_discriminator
+
+    @property
+    def probability_flip_labels_discriminator(self):
+        return self.hparams.args_dict.probability_flip_labels_discriminator
 
     def generator_params(self):
         return list(self.generator_synthetic2experimental.parameters()) + \
