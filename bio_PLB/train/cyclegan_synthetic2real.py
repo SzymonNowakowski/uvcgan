@@ -154,8 +154,8 @@ def main():
     #},
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
-    'lambda_preserve_identity': 1.0,
-    'lambda_cycle_identity': 1.0,
+    'lambda_preserve_identity': 10.0,
+    'lambda_cycle_identity': 10.0,
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
     'probability_flip_labels_discriminator': 0.05,   # with this probability, the labels for real/fake in discriminator loss are flipped, which is a common technique to stabilize training
