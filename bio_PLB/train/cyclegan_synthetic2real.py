@@ -28,6 +28,7 @@ def main():
 
     args_dict = OmegaConf.create({
         'epochs': 4000,
+        'gan_type': 'wasserstein',
         'outdir': 'outdir',
         'save_images_every': 100,
         'batch_size': 16,
@@ -161,7 +162,7 @@ def main():
     'lambda_discriminator': 1.0,
     'lambda_gradient_penalty': 10.0,
     'probability_flip_labels_discriminator': 0.05,   # with this probability, the labels for real/fake in discriminator loss are flipped, which is a common technique to stabilize training
-    'label': f'cyclegan',
+    'label': f'wasserstein',
     'logging_dir': 'logs',
     })
 

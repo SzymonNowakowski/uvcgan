@@ -147,9 +147,23 @@ class CycleGANWrapper(AbstractModel):
     def compute_discriminator_prediction(self, discriminator_model, image):
         return discriminator_model(image)
 
-    def compute_discriminator_loss(self, discriminator_model, image, compute_labels_fun):
+    def compute_discriminator_loss(self, discriminator_model, image, objective):
         discriminator_prediction = self.compute_discriminator_prediction(discriminator_model, image)
-        loss = self.discriminator_loss(discriminator_prediction, compute_labels_fun(discriminator_prediction))
+
+        if self.hparams.args_dict.get("gan_type") == "wasserstein":
+            wgan_sign_map = {
+                'real': -1.0,
+                'fake': 1.0,
+                'generator': -1.0
+            }
+            loss = wgan_sign_map[objective] * discriminator_prediction.mean()
+        else:
+            gan_label_functions = {
+                'real': self.close_to_ones_with_flip,
+                'fake': self.close_to_zeros_with_flip,
+                'generator': torch.ones_like,
+            }
+            loss = self.discriminator_loss(discriminator_prediction, gan_label_functions[objective](discriminator_prediction))
         return loss
 
     def compute_gradient_penalty(self,
@@ -240,16 +254,16 @@ class CycleGANWrapper(AbstractModel):
         loss_cycle_identity_synthetic = self.identity_loss(preds.real_synthetic, preds.reconstruction_synthetic)
         loss_cycle_identity_experimental = self.identity_loss(preds.real_experimental, preds.reconstruction_experimental)
 
-        loss_generator_synthetic = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic, torch.ones_like)
-        loss_generator_experimental = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental, torch.ones_like)
+        loss_generator_synthetic = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic, 'generator')
+        loss_generator_experimental = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental, 'generator')
 
         self.set_requires_grad(self.discriminator_experimental, True)
         self.set_requires_grad(self.discriminator_synthetic, True)
 
-        loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), self.close_to_zeros_with_flip)
-        loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, self.close_to_ones_with_flip)
-        loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), self.close_to_zeros_with_flip)
-        loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, self.close_to_ones_with_flip)
+        loss_discriminator_synthetic_fake = self.compute_discriminator_loss(self.discriminator_synthetic, preds.fake_synthetic.detach(), 'fake')
+        loss_discriminator_synthetic_real = self.compute_discriminator_loss(self.discriminator_synthetic, preds.real_synthetic, 'real')
+        loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), 'fake')
+        loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, 'real')
 
         loss_gradient_penalty_synthetic = self.compute_gradient_penalty(self.discriminator_synthetic, preds.real_synthetic, preds.fake_synthetic.detach())
         loss_gradient_penalty_experimental = self.compute_gradient_penalty(self.discriminator_experimental, preds.real_experimental, preds.fake_experimental.detach())
