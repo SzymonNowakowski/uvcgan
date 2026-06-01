@@ -137,10 +137,17 @@ def main():
         'weight_decay': 0.05,
         },
         {
-            '_target_': 'torch.optim.SGD',  # Dyscriminator optimization
+            '_target_': 'torch.optim.AdamW',  # Generator optimization
             'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
-            'momentum': 0.9,
+            'betas': (0.9, 0.99),
+            'weight_decay': 0.05,
         }
+        #{
+        #    '_target_': 'torch.optim.SGD',  # Dyscriminator optimization
+        #    'lr': "${eval:'${batch_size} * 2e-3 / 512'}",
+        #    'momentum': 0.9,
+        #}
+
     ],
     #'warmup_epochs': 100,
     'scheduler': None, #{
@@ -149,8 +156,8 @@ def main():
     #},
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
-    'lambda_preserve_identity': 10.0,
-    'lambda_cycle_identity': 10.0,
+    'lambda_preserve_identity': 3.0,
+    'lambda_cycle_identity': 3.0,
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
     'lambda_gradient_penalty': 10.0,
