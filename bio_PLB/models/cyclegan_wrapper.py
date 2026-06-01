@@ -13,10 +13,6 @@ from uvcgan.base.weight_init import init_weights
 from hydra.utils import instantiate
 from lightning_fabric.utilities.data import AttributeDict
 
-
-from bio_PLB.tools import get_git_revision_short_hash
-
-
 class CycleGANWrapper(AbstractModel):
     def __init__(self, args_dict):
         super().__init__(args_dict)
@@ -56,6 +52,10 @@ class CycleGANWrapper(AbstractModel):
     @property
     def lambda_discriminator(self):
         return self.hparams.args_dict.lambda_discriminator
+
+    @property
+    def lambda_gradient_penalty(self):
+        return self.hparams.args_dict.lambda_gradient_penalty
 
     @property
     def probability_flip_labels_discriminator(self):
@@ -144,10 +144,56 @@ class CycleGANWrapper(AbstractModel):
             if config.interval == 'epoch':
                 config.scheduler.step()
 
+    def compute_discriminator_prediction(self, discriminator_model, image):
+        return discriminator_model(image)
+
     def compute_discriminator_loss(self, discriminator_model, image, compute_labels_fun):
-        discriminator_prediction = discriminator_model(image)
+        discriminator_prediction = self.compute_discriminator_prediction(discriminator_model, image)
         loss = self.discriminator_loss(discriminator_prediction, compute_labels_fun(discriminator_prediction))
         return loss
+
+    def compute_gradient_penalty(self,
+            discriminator_model, real_data, fake_data, constant=1.0, epsilon = 1e-16
+    ):
+        """Rewritten and improved from uvcgan/base/losses.py cal_gradient_penalty function
+
+
+        source: https://arxiv.org/abs/1704.00028
+
+        Arguments:
+            discriminator_model (network)              -- discriminator network
+            real_data (tensor array)    -- real images
+            fake_data (tensor array)    -- generated images from the generator
+            device (str)                -- torch device
+            constant (float)            -- the constant used in formula:
+                (||gradient||_2 - constant)^2 / constant^2
+
+        Returns the gradient penalty loss
+        """
+        alpha = torch.rand(real_data.shape[0], 1, device=real_data.device)
+        alpha = alpha.expand(
+            real_data.shape[0], real_data.nelement() // real_data.shape[0]
+        ).contiguous().view(*real_data.shape)
+
+        interpolatesv = alpha * real_data + ((1 - alpha) * fake_data)
+
+        interpolatesv.requires_grad_(True)
+
+        disc_interpolates = self.compute_discriminator_prediction(discriminator_model, interpolatesv)
+
+        gradients = torch.autograd.grad(
+            outputs=disc_interpolates, inputs=interpolatesv,
+            grad_outputs=torch.ones_like(disc_interpolates),
+            create_graph=True, retain_graph=True, only_inputs=True
+        )
+
+        gradients = gradients[0].view(real_data.size(0), -1)
+
+        gradient_penalty = (
+                (((gradients + epsilon).norm(2, dim=1) - constant) ** 2)/(constant**2)   #division by (constant**2) after the Karras' https://arxiv.org/abs/1710.10196 paper
+                           ).mean()
+
+        return gradient_penalty
 
     def set_requires_grad(self, discriminator_model, requires_grad):
         for param in discriminator_model.parameters():
@@ -158,16 +204,16 @@ class CycleGANWrapper(AbstractModel):
         # with values close to 0 (0-0.3) randomly drawn from uniform distribution
         # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
         # between 0.7 and 1.0 (close to 1)
-        mask = torch.rand(tensor.size())
-        return ((mask < self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask >= self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3).to(tensor.device)
+        mask = torch.rand(tensor.size(), device=tensor.device)
+        return ((mask < self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size(), device=tensor.device) * 0.3) + (mask >= self.probability_flip_labels_discriminator) * torch.rand(tensor.size(), device=tensor.device) * 0.3)
 
     def close_to_ones_with_flip(self, tensor):
         # produce a tensor shaped like input tensor
         # with values close to 1 (0.7-1.0) randomly drawn from uniform distribution
         # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
         # between 0.0 and 0.3 (close to 0)
-        mask = torch.rand(tensor.size())
-        return ((mask >= self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size()) * 0.3) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size()) * 0.3).to(tensor.device)
+        mask = torch.rand(tensor.size(), device=tensor.device)
+        return ((mask >= self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size(), device=tensor.device) * 0.3) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size(), device=tensor.device) * 0.3)
 
     def process_batch_supervised(self, batch):
 
@@ -205,6 +251,8 @@ class CycleGANWrapper(AbstractModel):
         loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), self.close_to_zeros_with_flip)
         loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, self.close_to_ones_with_flip)
 
+        loss_gradient_penalty_synthetic = self.compute_gradient_penalty(self.discriminator_synthetic, preds.real_synthetic, preds.fake_synthetic.detach())
+        loss_gradient_penalty_experimental = self.compute_gradient_penalty(self.discriminator_experimental, preds.real_experimental, preds.fake_experimental.detach())
 
         losses  = { 'preserve_identity_synthetic': loss_preserve_identity_synthetic,
                     'preserve_identity_experimental': loss_preserve_identity_experimental,
@@ -216,6 +264,9 @@ class CycleGANWrapper(AbstractModel):
                     'discriminator_synthetic_real': loss_discriminator_synthetic_real,
                     'discriminator_experimental_fake': loss_discriminator_experimental_fake,
                     'discriminator_experimental_real': loss_discriminator_experimental_real,
+                    'discriminator_gradient_penalty_synthetic': loss_gradient_penalty_synthetic,
+                    'discriminator_gradient_penalty_experimental': loss_gradient_penalty_experimental,
+
                     'final': self.lambda_preserve_identity * loss_preserve_identity_synthetic +
                              self.lambda_preserve_identity * loss_preserve_identity_experimental +
                              self.lambda_cycle_identity * loss_cycle_identity_synthetic +
@@ -225,7 +276,10 @@ class CycleGANWrapper(AbstractModel):
                              self.lambda_discriminator * loss_discriminator_synthetic_fake +
                              self.lambda_discriminator * loss_discriminator_synthetic_real +
                              self.lambda_discriminator * loss_discriminator_experimental_fake +
-                             self.lambda_discriminator * loss_discriminator_experimental_real
+                             self.lambda_discriminator * loss_discriminator_experimental_real +
+                             self.lambda_gradient_penalty * loss_gradient_penalty_synthetic +
+                             self.lambda_gradient_penalty * loss_gradient_penalty_experimental
+
                   }
 
         metrics = { }

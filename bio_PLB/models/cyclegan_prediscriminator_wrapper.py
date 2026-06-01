@@ -32,23 +32,13 @@ class CycleGANPrediscriminatorWrapper(CycleGANWrapper):
         self.discriminator_synthetic.prediscriminator = self.prediscriminator_synthetic
         self.discriminator_experimental.prediscriminator = self.prediscriminator_experimental
 
-
-    def compute_discriminator_loss(self, discriminator_model, image, torch_init_like_fun):
+    def compute_discriminator_prediction(self, discriminator_model, image):
         def concatenate_channelwise(imageA, imageB):
             # image: (B, C, H, W), features: (B, C, H, W) -> result: (B, 2*C, H, W)
             return torch.cat((imageA, imageB), dim=-3)
 
 
-        discriminator_prediction = discriminator_model(concatenate_channelwise(image, discriminator_model.prediscriminator(image)))
-
-
-        loss = self.discriminator_loss(discriminator_prediction, torch_init_like_fun(discriminator_prediction))
-        return loss
-
-#    def process_batch_supervised(self, batch):
-#        preds, losses, metrics = super().process_batch_supervised(batch)
-
-#        return preds, losses, metrics
+        return discriminator_model(concatenate_channelwise(image, discriminator_model.prediscriminator(image)))
 
     def transplant_prediscriminator_heads(self, donor_synthetic: AutoencoderTwoWayWrapper, donor_experimental: AutoencoderTwoWayWrapper):
 
