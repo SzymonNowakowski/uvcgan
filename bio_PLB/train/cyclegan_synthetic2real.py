@@ -117,10 +117,11 @@ def main():
             'discriminator_link': 'logs/cyclegan-ce19c7c/checkpoints/best_total_loss_epoch=338-train_final_loss=4.49893.ckpt',
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
-                'image_shape': (2, '${target_px}', '${target_px}'),   # chanel is 2 because of the concatenation of image and prediscriminator BERT features
-                'ndf': 16,                # the number of filters in the last conv layer
-                'n_layers': 2,            # the number of conv layers in the discriminator
-                'max_mult': 4,            # normalization layer
+                'image_shape': (1, '${target_px}', '${target_px}'),
+                # chanel is would be 2 for prediscriminator because of the concatenation of image and prediscriminator BERT features
+                #'ndf': 16,                # the number of filters in the last conv layer
+                #'n_layers': 2,            # the number of conv layers in the discriminator
+                #'max_mult': 4,            # normalization layer
             },
             'weight_init': {
                 'name': 'normal',
@@ -166,14 +167,19 @@ def main():
 
 
 
-    model = CycleGANPrediscriminatorWrapper.load_from_checkpoint(args_dict.discriminator.discriminator_link, weights_only=False, strict=False)
+    #model = CycleGANPrediscriminatorWrapper.load_from_checkpoint(args_dict.discriminator.discriminator_link, weights_only=False, strict=False)
         # strict=False is very important because we are in fact reading the instance of CycleGANWrapper and loading it into CycleGANPrediscriminatorWrapper
-    model.hparams.args_dict = args_dict # overwritting previously saved args_dict
+    #model.hparams.args_dict = args_dict # overwritting previously saved args_dict
+
+    model = CycleGANWrapper(args_dict)
 
     donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.synthetic_generator_link, weights_only=False)
     donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.experimental_generator_link, weights_only=False)
-    model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
-    model.reinstaintiate_discriminator()  # we need to reinstaintiate the discriminator because of different structure
+    model.transplant_generator_heads(donor_synthetic, donor_experimental)
+
+    #model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
+    #model.reinstaintiate_discriminator()  # we need to reinstaintiate the discriminator because of different structure
+
 
 
     dataset = instantiate(args_dict.data.dataset)
