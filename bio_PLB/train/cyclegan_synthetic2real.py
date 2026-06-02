@@ -115,7 +115,7 @@ def main():
             }
         },
         'discriminator': {
-            'discriminator_link': 'logs/cyclegan-ce19c7c/checkpoints/best_total_loss_epoch=338-train_final_loss=4.49893.ckpt',
+            'discriminator_link': 'logs/cyclegan-ce19c7c/checkpoints/epoch_epoch=1024-train_final_loss=7.88303.ckpt',
             'model': {
                 '_target_': 'uvcgan.base.networks.NLayerDiscriminator',
                 'image_shape': (1, '${target_px}', '${target_px}'),
@@ -173,11 +173,12 @@ def main():
         # strict=False is very important because we are in fact reading the instance of CycleGANWrapper and loading it into CycleGANPrediscriminatorWrapper
     #model.hparams.args_dict = args_dict # overwritting previously saved args_dict
 
-    model = CycleGANWrapper(args_dict)
+    model = CycleGANWrapper.load_from_checkpoint(args_dict.discriminator.discriminator_link, weights_only=False, strict=False)
+    model.hparams.args_dict = args_dict  # overwritting previously saved args_dict
 
-    donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.synthetic_generator_link, weights_only=False)
-    donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.experimental_generator_link, weights_only=False)
-    model.transplant_generator_heads(donor_synthetic, donor_experimental)
+    #donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.synthetic_generator_link, weights_only=False)
+    #donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.experimental_generator_link, weights_only=False)
+    #model.transplant_generator_heads(donor_synthetic, donor_experimental)
 
     #model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
     #model.reinstaintiate_discriminator()  # we need to reinstaintiate the discriminator because of different structure
