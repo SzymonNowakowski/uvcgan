@@ -39,11 +39,15 @@ class CycleGANWrapper(AbstractModel):
     #instead of self.lambdas_blablabla define a set of properties that will serve as polymorphic methods and enable dynamic linking in case of loading a network from a checkpoint
     @property
     def lambda_preserve_identity(self):
-        return self.hparams.args_dict.lambda_preserve_identity
+        #linear growth from 0.0 to max over self.hparams.args_dict.lambda_growth_epochs
+        current_level = min(self.current_epoch, self.hparams.args_dict.lambda_growth_epochs) / self.hparams.args_dict.lambda_growth_epochs * self.hparams.args_dict.lambda_preserve_identity
+        return current_level
 
     @property
     def lambda_cycle_identity(self):
-        return self.hparams.args_dict.lambda_cycle_identity
+        # linear growth from 0.0 to max over self.hparams.args_dict.lambda_growth_epochs
+        current_level = min(self.current_epoch, self.hparams.args_dict.lambda_growth_epochs) / self.hparams.args_dict.lambda_growth_epochs * self.hparams.args_dict.lambda_cycle_identity
+        return current_level
 
     @property
     def lambda_generator(self):

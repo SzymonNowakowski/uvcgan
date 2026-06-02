@@ -158,6 +158,7 @@ def main():
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
     'lambda_preserve_identity': 3.0,
     'lambda_cycle_identity': 3.0,
+    'lambda_growth_epochs': 200, #number of epochs it takes for identity- and cycle- lambdas to reach the max levels
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
     'lambda_gradient_penalty': 10.0,
