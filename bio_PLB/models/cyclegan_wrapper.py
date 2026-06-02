@@ -132,7 +132,9 @@ class CycleGANWrapper(AbstractModel):
         #self.clip_gradients(opt_g, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
         #self.clip_gradients(opt_d, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
 
-        opt_g.step()
+        if self.current_epoch % 10 == 9:
+            opt_g.step()
+
         opt_d.step()
 
         # manual handling of "step" based schedulers
