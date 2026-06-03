@@ -78,7 +78,7 @@ class AbstractModel(pl.LightningModule):
         # "batch" is the output of the training data loader.
         preds, losses, metrics = self.process_batch_supervised(batch)
         self.log_all(losses, metrics, prefix='train_')
-        if (self.current_epoch == 0 or self.current_epoch % 1000 == 999) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
+        if (self.current_epoch == 0 or self.current_epoch % 10 == 9) and batch_idx == 0 and self.hparams.args_dict.get("outdir"):
             self.log_preds(preds, self.hparams.args_dict.outdir)
 
         return losses['final']
@@ -93,7 +93,7 @@ class AbstractModel(pl.LightningModule):
         # the file self.current_epoch_xxx.png:
         #   the batched images should be arranged in a column and rows of the resulting bigger image should be in this order: real_xxx, masked_xxx, reco_xxx
 
-        self.save_images(preds, outdir)
+        self.save_images(preds, subdir)
 
 
 

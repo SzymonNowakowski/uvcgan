@@ -26,7 +26,7 @@ def main():
     OmegaConf.register_new_resolver("eval", eval)
 
     args_dict = OmegaConf.create({
-        'epochs': 4000,
+        'epochs': 1200,
         'outdir': 'outdir',
         'batch_size': 32,
         'target_px': 160,
@@ -139,7 +139,7 @@ def main():
     'lambda_cycle_identity': 10.0,
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
-    'label': f'cyclegan',
+    'label': f'ce19_diagnosis',
     'logging_dir': 'logs',
     })
 
@@ -185,7 +185,7 @@ def main():
                 filename='best_experimental_loss_{epoch}-{train_loss_experimental_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, every_n_epochs=5,
+                save_weights_only=True, every_n_epochs=10, save_top_k=60,
                 filename='epoch_{epoch}-{train_final_loss:.5f}'
             ),
             pl.callbacks.LearningRateMonitor("epoch"),
