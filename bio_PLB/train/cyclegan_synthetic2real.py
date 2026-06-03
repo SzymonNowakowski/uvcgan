@@ -185,7 +185,7 @@ def main():
                 filename='best_experimental_loss_{epoch}-{train_loss_experimental_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, every_n_epochs=10, save_top_k=60,
+                save_weights_only=True, every_n_epochs=10, save_top_k=-1, monitor="epoch", mode="max",
                 filename='epoch_{epoch}-{train_final_loss:.5f}'
             ),
             pl.callbacks.LearningRateMonitor("epoch"),
