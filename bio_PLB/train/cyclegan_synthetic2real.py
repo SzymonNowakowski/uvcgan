@@ -26,7 +26,7 @@ def main():
     OmegaConf.register_new_resolver("eval", eval)
 
     args_dict = OmegaConf.create({
-        'epochs': 1200,
+        'epochs': 2000,
         'outdir': 'outdir',
         'batch_size': 32,
         'target_px': 160,
