@@ -65,6 +65,7 @@ def main():
                         'target_nm': "${eval:'2 * ${target_px}'}",
                         'target_px': '${target_px}',
                         'return_tensors': True,
+                        'distribution': 'uniform'  #to match the ce19c7c commit default
                         # TODO: add mean/std
                     },
                     {
