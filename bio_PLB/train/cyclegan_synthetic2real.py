@@ -15,9 +15,11 @@ import pytorch_lightning as pl
 import torch
 
 import bio_PLB.tools
+from pytorch_lightning import seed_everything
 
 def main():
-
+    # Seeds random, numpy, torch, torch.cuda, and dataloader workers for reproducibility
+    seed_everything(42, workers=True)
 
     print("Current Working Directory:", os.getcwd())
 
@@ -75,7 +77,7 @@ def main():
                         'target_nm': "${eval:'2 * ${target_px}'}",
                         'target_px': '${target_px}',
                         'return_tensors': True,
-                        'distribution': 'uniform'   # it makes sure that the backgrounds are sampled uniformly, with the default currently being "normal" which pays more attention to image center
+                        'distribution': 'normal'   # fixed normal distribution in PLB code (commit #ca48670 in PLB Center4ML repository main branch)
                         # TODO: add mean/std
                     }
                 ],
