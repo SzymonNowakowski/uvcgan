@@ -1,4 +1,5 @@
 import os
+from importlib.metadata import distribution
 
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
@@ -67,7 +68,7 @@ def main():
                         'target_nm': "${eval:'2 * ${target_px}'}",
                         'target_px': '${target_px}',
                         'return_tensors': True,
-                        'distribution': 'uniform'  #to match the ce19c7c commit default
+                        'distribution': 'normal'   # fixed normal distribution in PLB code (commit #ca48670 in PLB Center4ML repository main branch)
                         # TODO: add mean/std
                     },
                     {
@@ -77,7 +78,7 @@ def main():
                         'target_nm': "${eval:'2 * ${target_px}'}",
                         'target_px': '${target_px}',
                         'return_tensors': True,
-                        'distribution': 'normal'   # fixed normal distribution in PLB code (commit #ca48670 in PLB Center4ML repository main branch)
+                        'distribution': 'uniform' # the backgrounds should be sampled uniformly
                         # TODO: add mean/std
                     }
                 ],
