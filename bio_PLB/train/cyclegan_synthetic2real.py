@@ -31,6 +31,7 @@ def main():
     args_dict = OmegaConf.create({
         'epochs': 2000,
         'gan_type': 'gan',    #values: 'wasserstein', 'gan'
+        'update_generator_every': 1,
         'outdir': 'outdir',
         'save_images_every': 10,
         'batch_size': 32,
