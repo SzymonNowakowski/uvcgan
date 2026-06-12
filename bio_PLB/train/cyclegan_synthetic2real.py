@@ -16,9 +16,11 @@ import pytorch_lightning as pl
 import torch
 
 import bio_PLB.tools
+from pytorch_lightning import seed_everything
 
 def main():
-
+    # Seeds random, numpy, torch, torch.cuda, and dataloader workers for reproducibility
+    seed_everything(42, workers=True)
 
     print("Current Working Directory:", os.getcwd())
 
@@ -28,7 +30,7 @@ def main():
 
     args_dict = OmegaConf.create({
         'epochs': 4000,
-        'gan_type': 'wasserstein',
+        'gan_type': 'gan',    #values: 'wasserstein', 'gan'
         'outdir': 'outdir',
         'save_images_every': 100,
         'batch_size': 16,
@@ -68,6 +70,7 @@ def main():
                         'target_nm': "${eval:'2 * ${target_px}'}",
                         'target_px': '${target_px}',
                         'return_tensors': True,
+                        'distribution': 'normal'   # fixed normal distribution in PLB code (commit #ca48670 in PLB Center4ML repository main branch)
                         # TODO: add mean/std
                     },
                     {
@@ -77,7 +80,7 @@ def main():
                         'target_nm': "${eval:'2 * ${target_px}'}",
                         'target_px': '${target_px}',
                         'return_tensors': True,
-                        'distribution': 'uniform'   # it makes sure that the backgrounds are sampled uniformly, with the default currently being "normal" which pays more attention to image center
+                        'distribution': 'uniform' # the backgrounds should be sampled uniformly
                         # TODO: add mean/std
                     }
                 ],
@@ -156,14 +159,14 @@ def main():
     #},
     'identity_loss'     : {'_target_' : 'torch.nn.L1Loss'},
     'discriminator_loss': {'_target_': 'torch.nn.BCEWithLogitsLoss'},
-    'lambda_preserve_identity': .5,
-    'lambda_cycle_identity': .5,
-    'lambda_growth_epochs': 200, #number of epochs it takes for identity- and cycle- lambdas to reach the max levels
+    'lambda_preserve_identity': 10,
+    'lambda_cycle_identity': 10,
+    'lambda_growth_epochs': 1, # >0; number of epochs it takes for identity- and cycle- lambdas to reach the max levels
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
-    'lambda_gradient_penalty': 10.0,
+    'lambda_gradient_penalty': 0.0,
     'probability_flip_labels_discriminator': 0.05,   # with this probability, the labels for real/fake in discriminator loss are flipped, which is a common technique to stabilize training
-    'label': f'wasserstein',
+    'label': f'recreate_ce19_in_main',
     'logging_dir': 'logs',
     })
 
@@ -173,8 +176,8 @@ def main():
         # strict=False is very important because we are in fact reading the instance of CycleGANWrapper and loading it into CycleGANPrediscriminatorWrapper
     #model.hparams.args_dict = args_dict # overwritting previously saved args_dict
 
-    model = CycleGANWrapper.load_from_checkpoint(args_dict.discriminator.discriminator_link, weights_only=False, strict=False)
-    model.hparams.args_dict = args_dict  # overwritting previously saved args_dict
+    #model = CycleGANWrapper.load_from_checkpoint(args_dict.discriminator.discriminator_link, weights_only=False, strict=False)
+    #model.hparams.args_dict = args_dict  # overwritting previously saved args_dict
 
     #donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.synthetic_generator_link, weights_only=False)
     #donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.experimental_generator_link, weights_only=False)
@@ -183,7 +186,13 @@ def main():
     #model.transplant_prediscriminator_heads(donor_synthetic, donor_experimental)
     #model.reinstaintiate_discriminator()  # we need to reinstaintiate the discriminator because of different structure
 
+    model = CycleGANWrapper(args_dict)
+    donor_synthetic = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.synthetic_generator_link,
+                                                                    weights_only=False)
+    donor_experimental = AutoencoderTwoWayWrapper.load_from_checkpoint(args_dict.generator.experimental_generator_link,
+                                                                       weights_only=False)
 
+    model.transplant_generator_heads(donor_synthetic, donor_experimental)
 
     dataset = instantiate(args_dict.data.dataset)
     dataloader = DataLoader(dataset, batch_size=args_dict.batch_size, shuffle=True, num_workers=args_dict.num_workers)

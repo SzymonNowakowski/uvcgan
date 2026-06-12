@@ -271,8 +271,12 @@ class CycleGANWrapper(AbstractModel):
         loss_discriminator_experimental_fake = self.compute_discriminator_loss(self.discriminator_experimental, preds.fake_experimental.detach(), 'fake')
         loss_discriminator_experimental_real = self.compute_discriminator_loss(self.discriminator_experimental, preds.real_experimental, 'real')
 
-        loss_gradient_penalty_synthetic = self.compute_gradient_penalty(self.discriminator_synthetic, preds.real_synthetic, preds.fake_synthetic.detach())
-        loss_gradient_penalty_experimental = self.compute_gradient_penalty(self.discriminator_experimental, preds.real_experimental, preds.fake_experimental.detach())
+        if self.lambda_gradient_penalty > 0:
+            loss_gradient_penalty_synthetic = self.compute_gradient_penalty(self.discriminator_synthetic, preds.real_synthetic, preds.fake_synthetic.detach())
+            loss_gradient_penalty_experimental = self.compute_gradient_penalty(self.discriminator_experimental, preds.real_experimental, preds.fake_experimental.detach())
+        else:
+            loss_gradient_penalty_synthetic = 0
+            loss_gradient_penalty_experimental =0
 
         losses  = { 'preserve_identity_synthetic': loss_preserve_identity_synthetic,
                     'preserve_identity_experimental': loss_preserve_identity_experimental,

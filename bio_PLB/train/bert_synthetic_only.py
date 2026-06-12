@@ -13,9 +13,11 @@ import pytorch_lightning as pl
 import torch
 
 import bio_PLB.tools
+from pytorch_lightning import seed_everything
 
 def main():
-
+    # Seeds random, numpy, torch, torch.cuda, and dataloader workers for reproducibility
+    seed_everything(42, workers=True)
 
     print("Current Working Directory:", os.getcwd())
 
