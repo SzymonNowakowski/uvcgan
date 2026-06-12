@@ -29,11 +29,11 @@ def main():
     OmegaConf.register_new_resolver("eval", eval)
 
     args_dict = OmegaConf.create({
-        'epochs': 4000,
+        'epochs': 2000,
         'gan_type': 'gan',    #values: 'wasserstein', 'gan'
         'outdir': 'outdir',
-        'save_images_every': 100,
-        'batch_size': 16,
+        'save_images_every': 10,
+        'batch_size': 32,
         'target_px': 160,
         'num_workers': 19,   #19 is the number of cores on the machine
         'data': {
@@ -224,7 +224,7 @@ def main():
                 filename='best_train_cycle_identity_synthetic_loss_{epoch}-{train_cycle_identity_synthetic_loss:.5f}-{train_final_loss:.5f}'
             ),  # Save the best checkpoint based on the min loss recorded. Saves only weights and not optimizer
             pl.callbacks.ModelCheckpoint(
-                save_weights_only=True, every_n_epochs=5,
+                save_weights_only=True, every_n_epochs=10, save_top_k=-1, monitor="epoch", mode="max",
                 filename='epoch_{epoch}-{train_final_loss:.5f}'
             ),
             pl.callbacks.LearningRateMonitor("epoch"),
