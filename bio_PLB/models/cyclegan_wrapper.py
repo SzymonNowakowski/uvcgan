@@ -71,6 +71,10 @@ class CycleGANWrapper(AbstractModel):
     def probability_flip_labels_discriminator(self):
         return self.hparams.args_dict.probability_flip_labels_discriminator
 
+    @property
+    def definition_of_one_label(self):
+        return self.hparams.args_dict.definition_of_one_label
+
     def generator_params(self):
         return list(self.generator_synthetic2experimental.parameters()) + \
                      list(self.generator_experimental2synthetic.parameters())
@@ -227,19 +231,19 @@ class CycleGANWrapper(AbstractModel):
 
     def close_to_zeros_with_flip(self, tensor):
         # produce a tensor shaped like input tensor
-        # with values close to 0 (0-0.3) randomly drawn from uniform distribution
+        # with values close to 0 (say 0-0.3) randomly drawn from uniform distribution
         # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
-        # between 0.7 and 1.0 (close to 1)
+        # between (say) 0.7 and 1.0 (close to 1)
         mask = torch.rand(tensor.size(), device=tensor.device)
-        return ((mask < self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size(), device=tensor.device) * 0.3) + (mask >= self.probability_flip_labels_discriminator) * torch.rand(tensor.size(), device=tensor.device) * 0.3)
+        return ((mask < self.probability_flip_labels_discriminator) * (self.definition_of_one_label + torch.rand(tensor.size(), device=tensor.device) * (1-self.definition_of_one_label)) + (mask >= self.probability_flip_labels_discriminator) * torch.rand(tensor.size(), device=tensor.device) * (1-self.definition_of_one_label))
 
     def close_to_ones_with_flip(self, tensor):
         # produce a tensor shaped like input tensor
-        # with values close to 1 (0.7-1.0) randomly drawn from uniform distribution
+        # with values close to 1 (say 0.7-1.0) randomly drawn from uniform distribution
         # and with a certain probability (self.probability_flip_labels_discriminator) flipped to value
-        # between 0.0 and 0.3 (close to 0)
+        # between (say) 0.0 and 0.3 (close to 0)
         mask = torch.rand(tensor.size(), device=tensor.device)
-        return ((mask >= self.probability_flip_labels_discriminator) * (0.7 + torch.rand(tensor.size(), device=tensor.device) * 0.3) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size(), device=tensor.device) * 0.3)
+        return ((mask >= self.probability_flip_labels_discriminator) * (self.definition_of_one_label + torch.rand(tensor.size(), device=tensor.device) * (1-self.definition_of_one_label)) + (mask < self.probability_flip_labels_discriminator) * torch.rand(tensor.size(), device=tensor.device) * (1-self.definition_of_one_label))
 
     def process_batch_supervised(self, batch):
 
