@@ -165,10 +165,10 @@ def main():
     'lambda_growth_epochs': 1, # >0; number of epochs it takes for identity- and cycle- lambdas to reach the max levels
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
-    'lambda_gradient_penalty': 0.0,
+    'lambda_gradient_penalty': 10.0,
     'probability_flip_labels_discriminator': 0.0, #0.5,   # with this probability, the labels for real/fake in discriminator loss are flipped, which is a common technique to stabilize training
     'definition_of_one_label': 1.0,#0.7,
-    'label': f'recreate_ce19_in_main_fixed_labels',
+    'label': f'recreate_ce19_in_main_gradient_penalty',
     'logging_dir': 'logs',
     })
 
