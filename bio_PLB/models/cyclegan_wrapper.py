@@ -65,7 +65,28 @@ class CycleGANWrapper(AbstractModel):
 
     @property
     def lambda_gradient_penalty(self):
-        return self.hparams.args_dict.lambda_gradient_penalty
+        base_lambda = self.hparams.args_dict.lambda_gradient_penalty
+
+        total_epochs = self.hparams.args_dict.epochs
+        decay_epochs = self.hparams.args_dict.lambda_gradient_decay_epochs
+        zero_epochs = self.hparams.args_dict.lambda_gradient_decayed_epochs
+
+        epoch = self.current_epoch
+
+        decay_start_epoch = total_epochs - zero_epochs - decay_epochs
+        decay_end_epoch = total_epochs - zero_epochs
+
+        # fully off
+        if epoch >= decay_end_epoch:
+            return 0.0
+
+        # linear decay phase
+        if epoch >= decay_start_epoch:
+            progress = (epoch - decay_start_epoch) / decay_epochs
+            return base_lambda * (1.0 - progress)
+
+        # full strength phase
+        return base_lambda
 
     @property
     def probability_flip_labels_discriminator(self):

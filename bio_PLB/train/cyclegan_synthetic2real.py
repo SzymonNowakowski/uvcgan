@@ -166,6 +166,8 @@ def main():
     'lambda_generator': 1.0,
     'lambda_discriminator': 1.0,
     'lambda_gradient_penalty': 10.0,
+    'lambda_gradient_decay_epochs': 500,
+    'lambda_gradient_decayed_epochs': 1000,
     'probability_flip_labels_discriminator': 0.0, #0.5,   # with this probability, the labels for real/fake in discriminator loss are flipped, which is a common technique to stabilize training
     'definition_of_one_label': 1.0,#0.7,
     'label': f'gradient_penalty',
