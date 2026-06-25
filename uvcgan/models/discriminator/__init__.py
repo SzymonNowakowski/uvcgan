@@ -1,3 +1,10 @@
+# LICENSE
+# This file was forked from
+#   https://github.com/LS4GAN/uvcgan
+# Please see `uvcgan/base/LICENSE` for copyright attribution and LICENSE
+
+
+
 from uvcgan.base.networks    import select_base_discriminator
 from uvcgan.base.weight_init import init_weights
 from uvcgan.torch.funcs      import prepare_model

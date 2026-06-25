@@ -1,3 +1,10 @@
+# LICENSE
+# This file was forked from
+#   https://github.com/LS4GAN/uvcgan
+# Please see `uvcgan/base/LICENSE` for copyright attribution and LICENSE
+
+
+
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 

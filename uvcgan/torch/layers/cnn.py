@@ -1,3 +1,10 @@
+# LICENSE
+# This file was forked from
+#   https://github.com/LS4GAN/uvcgan
+# Please see `uvcgan/base/LICENSE` for copyright attribution and LICENSE
+
+
+
 from torch import nn
 from uvcgan.torch.select import extract_name_kwargs
 
