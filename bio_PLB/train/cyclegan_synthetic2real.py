@@ -29,7 +29,7 @@ def main():
     OmegaConf.register_new_resolver("eval", eval)
 
     args_dict = OmegaConf.create({
-        'epochs': 2000,
+        'epochs': 6000,
         'gan_type': 'wasserstein',    #values: 'wasserstein', 'gan'
         'update_generator_every': 2,
         'outdir': 'outdir',
